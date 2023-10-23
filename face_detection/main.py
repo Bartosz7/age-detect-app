@@ -41,9 +41,7 @@ for imagePath in filenames:
     # make image color again
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-    directory = (
-        "face_detection/min_neighbors_" + str(min_neighbors) + "/" + face_images_path
-    )
+    directory = "face_detection/min_neighbors_" + str(min_neighbors) + "/"
     os.makedirs(directory, exist_ok=True)
     plt.figure(figsize=(20, 10))
     plt.imsave(directory + imagePath, img_rgb)
