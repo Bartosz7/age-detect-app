@@ -9,3 +9,7 @@ For min_neighbors < 20 there are a lot of false positives.
 For min_neighbors > 50 some faces are not detected.
 
 Dog is not recognized (thank god) as human's face.
+
+Images without haarcascade subfolder were created using haarcasade_frontalface_alt.xml classifier
+
+Ale_tree clasifier doesn't detect well.

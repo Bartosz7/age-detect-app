@@ -13,7 +13,8 @@ import os
 
 filenames = next(os.walk("face_detection/face_images/", (None, None, [])))[2]
 
-min_neighbors = 15
+min_neighbors = 4
+clasifier = "haarcascade_frontalface_alt_tree.xml"
 face_images_path = "face_detection/face_images/"
 
 for imagePath in filenames:
@@ -26,7 +27,7 @@ for imagePath in filenames:
     print(gray_image.shape)  # (931, 1170)
 
     face_classifier = cv2.CascadeClassifier(
-        cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+        cv2.data.haarcascades + clasifier
     )  # load clasifier for frontal faces detection
 
     # detect face
@@ -41,7 +42,9 @@ for imagePath in filenames:
     # make image color again
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-    directory = "face_detection/min_neighbors_" + str(min_neighbors) + "/"
+    directory = (
+        "face_detection/min_neighbors_" + str(min_neighbors) + "/" + clasifier + "/"
+    )
     os.makedirs(directory, exist_ok=True)
     plt.figure(figsize=(20, 10))
     plt.imsave(directory + imagePath, img_rgb)
