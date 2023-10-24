@@ -1,0 +1,18 @@
+Datasets which can be used:
+KANFace (almost at hand)
+KANFace consists of 40K still images and 44K sequences (14.5M video frames in total) captured in unconstrained, real-world conditions from 1,045 subjects. 
+The dataset is manually annotated in terms of identity, exact age, gender and kinship. To gain access to the dataset, please visit this fill in the form below.
+https://ibug.doc.ic.ac.uk/resources/kanface/
+Image set: https://ibug.doc.ic.ac.uk/download/kanface/images.tar.gz
+Video set: https://ibug.doc.ic.ac.uk/download/kanface/videos.tar.gz
+Code for age estimation: https://github.com/ibug-group/fpage
+
+UTKFace (available at hand)
+Introduced by Zhang et al. in Age Progression/Regression by Conditional Adversarial Autoencoder
+The UTKFace dataset is a large-scale face dataset with long age span (range from 0 to 116 years old). The dataset consists of over 20,000 face images with annotations of age, gender, and ethnicity. 
+The images cover large variation in pose, facial expression, illumination, occlusion, resolution, etc. This dataset could be used on a variety of tasks, e.g., face detection, age estimation, age progression/regression, landmark localization, etc.
+
+https://susanqq.github.io/UTKFace/
+
+MORPH (need request and needs to be paid...)
+MORPH is a facial age estimation dataset, which contains 55,134 facial images of 13,617 subjects ranging from 16 to 77 years old.
