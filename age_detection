@@ -20,3 +20,17 @@ https://data.vision.ee.ethz.ch/cvl/rrothe/imdb-wiki/
 
 IMDB-WIKI – 500k+ face images with age and gender labels
 probably the best but maybe to much data to process
+
+
+CODES:
+https://www.kaggle.com/code/artemsilvander/face-recognition-age-2-optimal-cnn-structure
+
+https://www.kaggle.com/code/ahmedghobashi/cnn-model-for-face-image-data
+
+https://www.kaggle.com/code/karan842/age-and-gender-detection-by-cnn/notebook
+
+https://www.kaggle.com/code/ahmedghobashi/cnn-model-for-face-image-data
+
+https://www.kaggle.com/code/yeonseokcho/cnn-with-face-image-data#CNN-modeling-target-3---age
+
+https://www.kaggle.com/code/shanmukh05/human-age-recognition-gpu-kdag
