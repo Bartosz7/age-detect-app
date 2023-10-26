@@ -164,9 +164,9 @@ cython_debug/
 # Ignore content of data folder (but keep folder structure)
 data/**
 !data/.gitkeep
-!data/detections/
+!data/predictions/
 !data/test_data/
 !data/train_data/
-!data/detections/.gitkeep
+!data/predictions/.gitkeep
 !data/test_data/.gitkeep
 !data/train_data/.gitkeep
