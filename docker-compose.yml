@@ -1,0 +1,8 @@
+version: "3.11"
+
+services:
+  age-detection:
+    build: .
+    volumes:
+      - .:/age-detection
+    command: sleep infinity
