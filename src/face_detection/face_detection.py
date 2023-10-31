@@ -27,12 +27,3 @@ def detect_faces(
     if detector == Detectors.OPEN_CV:
         # TODO if we want to use opencv
         pass
-
-
-if __name__ == "__main__":
-    print(os.getcwd())
-    detect_faces(
-        detector=Detectors.MEDIAPIPE,
-        inputFolderPath="data/train_data",
-        outputFolderPath="data/detections",
-    )
