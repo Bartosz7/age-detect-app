@@ -167,6 +167,8 @@ data/**
 !data/predictions/
 !data/test_data/
 !data/train_data/
+!data/checkpoints/
 !data/predictions/.gitkeep
 !data/test_data/.gitkeep
 !data/train_data/.gitkeep
+!data/checkpoints/.gitkeep
