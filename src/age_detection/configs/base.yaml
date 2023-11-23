@@ -1,0 +1,10 @@
+images_path: /home/simonexc/Documents/GitHub/age-detect-app/data/train_data/imdb_fixed
+train_labels_path: /home/simonexc/Documents/GitHub/age-detect-app/data/train_data/train.parquet
+test_labels_path: /home/simonexc/Documents/GitHub/age-detect-app/data/train_data/test.parquet
+val_labels_path: /home/simonexc/Documents/GitHub/age-detect-app/data/train_data/val.parquet
+
+checkpoints_path: /home/simonexc/Documents/GitHub/age-detect-app/data/checkpoints
+
+epochs: 5
+batch_size: 32
+lr: 0.001
