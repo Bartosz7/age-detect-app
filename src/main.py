@@ -1,22 +1,8 @@
-from src.face_detection.face_detection import Detectors, detect_faces
+from src.face_detection.detection import *
 
 if __name__ == "__main__":
-    # face detection
-
-    # detect_faces_from_folder
-    detect_faces(
-        detector=Detectors.MEDIAPIPE,
-        inputFolderPath="data/train_data",
-        outputFolderPath="data/detections",
+    results = run_detection(
+        detector=Detectors.OPEN_CV,
+        input_path="data/train_data",
+        output_path="data/output",
     )
-
-    # detect_faces_from_camera
-
-    # detect_faces(
-    #     outputFolderPath="data/camera",
-    #     detector=Detectors.MEDIAPIPE,
-    #     image=None,  # change to image from camera
-    # )
-
-    # age detection
-    pass
