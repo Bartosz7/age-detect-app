@@ -11,12 +11,19 @@ class Detectors(Enum):
 
 
 class DetectedFace:
-    def __init__(self, image, x, y, w, h) -> None:
+    def __init__(self, image, x, y, w, h, name) -> None:
         self.image = image
         self.x = x
         self.y = y
         self.w = w
         self.h = h
+        self.name = name
+
+
+class ImagesWithDetectedFaces:
+    def __init__(self, image, input_path) -> None:
+        self.image = image
+        self.input_path = input_path
 
 
 def run_detection(
@@ -38,33 +45,36 @@ def run_detection(
         return []
 
     # add images to list
-    if full_image != None:
-        images.append(full_image)
+    if full_image is not None:
+        images.append(ImagesWithDetectedFaces(full_image, None))
     elif input_path != "":
         if is_path_file(input_path):
-            images.append(get_cv2_image_from_file(input_path))
+            res = get_cv2_image_from_file(input_path)
+            if res is not None:
+                images.append()
         else:
             images = get_cv2_images_from_folder(input_path)
 
     list_of_faces_and_coordinates = []
     # get faces and coordinates
     if detector == Detectors.MEDIAPIPE:
-        for image in images:
-            list_of_faces_and_coordinates += detect_faces_with_mediapipe(image)
+        for imageWithDetectedFaces in images:
+            res = detect_faces_with_mediapipe(imageWithDetectedFaces)
+            list_of_faces_and_coordinates += res
     else:
-        for image in images:
-            list_of_faces_and_coordinates += detect_face_with_open_cv(image)
+        for imageWithDetectedFaces in images:
+            list_of_faces_and_coordinates += detect_face_with_open_cv(
+                imageWithDetectedFaces
+            )
 
     if output_path != "":
         absolute_path = os.path.abspath(output_path)
-        if not os.path.exists(absolute_path):
-            # os.makedirs(absolute_path)
+        if not os.path.exists(os.path.join(absolute_path, "faces")):
+            os.makedirs(absolute_path, exist_ok=True)
             os.makedirs(absolute_path + "/faces/", exist_ok=True)
 
         for i, face in enumerate(list_of_faces_and_coordinates):
-            path = os.path.join(
-                absolute_path, "faces", f"face_{i}_{face.x}_{face.y}.png"
-            )
+            path = os.path.join(absolute_path, "faces", f"face_{face.name}_{i}.png")
             cv2.imwrite(path, face.image)
 
     return list_of_faces_and_coordinates
@@ -79,7 +89,7 @@ def is_path_file(path):
 def get_cv2_image_from_file(full_path: str):
     if not is_path_file(full_path):
         return None
-    return cv2.imread(full_path)
+    return ImagesWithDetectedFaces(cv2.imread(full_path), os.path.basename(full_path))
 
 
 def get_cv2_images_from_folder(folder_path) -> list:
@@ -97,39 +107,41 @@ def detect_faces_with_mediapipe(image):
     with mp_face_detection.FaceDetection(
         model_selection=1, min_detection_confidence=0.5
     ) as face_detection:
-        results = face_detection.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+        results = face_detection.process(cv2.cvtColor(image.image, cv2.COLOR_BGR2RGB))
 
         if not results.detections:
-            return None, []
+            return []
 
         faces = []
 
         for i, detection in enumerate(results.detections):
             bboxC = detection.location_data.relative_bounding_box
-            ih, iw, _ = image.shape
+            ih, iw, _ = image.image.shape
             x, y, w, h = (
                 int(bboxC.xmin * iw),
                 int(bboxC.ymin * ih),
                 int(bboxC.width * iw),
                 int(bboxC.height * ih),
             )
-            face = image[y : y + h, x : x + w]
-            detected_face = DetectedFace(face, x, y, w, h)
-            faces.append(detected_face)
+            face = image.image[y : y + h, x : x + w]
+            detected_face = DetectedFace(face, x, y, w, h, image.input_path)
+            if detected_face is not None:
+                faces.append(detected_face)
     return faces
 
 
-def detect_face_with_open_cv(full_image):
+def detect_face_with_open_cv(image):
     min_neighbors = 4
     clasifier = "haarcascade_frontalface_alt_tree.xml"
 
-    gray_image = cv2.cvtColor(full_image, cv2.COLOR_BGR2GRAY)
+    gray_image = cv2.cvtColor(image.image, cv2.COLOR_BGR2GRAY)
     face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + clasifier)
     face = face_classifier.detectMultiScale(
         gray_image, scaleFactor=1.1, minNeighbors=min_neighbors, minSize=(40, 40)
     )
     faces = []
     for x, y, w, h in face:
-        face = full_image[y : y + h, x : x + w]
-        faces.append(DetectedFace(face, x, y, w, h))
+        face = image.image[y : y + h, x : x + w]
+        if face is not None:
+            faces.append(DetectedFace(face, x, y, w, h, image.input_path))
     return faces
