@@ -6,15 +6,14 @@ import glob
 from tqdm import tqdm
 from multiprocessing import Pool
 
-def cutout_face(args) -> None:
-    file, save_folder = args
-    
-    """Detect face in an image and save the face"""
 
+def get_face(file):
     # Using the `with` statement ensures that the mediapipe solution is properly closed
     with mp.solutions.face_detection.FaceDetection(min_detection_confidence=0.2) as face_detection:
         # Read image
         image = cv2.imread(file)
+        if image is None:
+            return None
         height, width, _ = image.shape
 
         # Convert the BGR image to RGB
@@ -31,10 +30,22 @@ def cutout_face(args) -> None:
                 int(face.ymin * height):int((face.ymin+face.height) * height),
                 int(face.xmin * width):int((face.xmin+face.width) * width),
             ]
-            dir_name = os.path.basename(os.path.dirname(file))
-            os.makedirs(os.path.join(save_folder, dir_name), exist_ok=True)
-            if face.shape[0] > 50 and face.shape[1] > 50:
-                cv2.imwrite(os.path.join(save_folder, dir_name, os.path.basename(file)), face)
+
+            return face
+
+    return None
+
+
+def cutout_face(args) -> None:
+    file, save_folder = args
+    
+    """Detect face in an image and save the face"""
+    face = get_face(file)
+    if face:
+        dir_name = os.path.basename(os.path.dirname(file))
+        os.makedirs(os.path.join(save_folder, dir_name), exist_ok=True)
+        if face.shape[0] > 50 and face.shape[1] > 50:
+            cv2.imwrite(os.path.join(save_folder, dir_name, os.path.basename(file)), face)
 
 
 if __name__ == "__main__":

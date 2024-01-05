@@ -28,7 +28,7 @@ def train(config_name: str, run_name: str, weights_path: str | None = None):
     ) as yaml_file:
         yaml.dump(config.__dict__, yaml_file, default_flow_style=False)
     
-    train_dataset = ImageData(config, mode="train")
+    train_dataset = ImageData(config, mode="train", auto_balancing=config.auto_balance)
     val_dataset = ImageData(config, mode="val")
     test_dataset = ImageData(config, mode="test")
 
@@ -36,21 +36,24 @@ def train(config_name: str, run_name: str, weights_path: str | None = None):
         train_dataset,
         batch_size=config.batch_size,
         shuffle=True,
+        num_workers=24,
     )
     val_loader = torch.utils.data.DataLoader(
         val_dataset,
         batch_size=config.batch_size,
         shuffle=False,
+        num_workers=24,
     )
-    test_loader = torch.utils.data.DataLoader(
-        test_dataset,
-        batch_size=config.batch_size,
-        shuffle=False,
-    )
+    #test_loader = torch.utils.data.DataLoader(
+    #    test_dataset,
+    #    batch_size=config.batch_size,
+    #    shuffle=False,
+    #    num_workers=24,
+    #)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    model = resnet50(weights_path).to(device)
+    model = resnet50(weights_path, config.drop).to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
     loss = torch.nn.MSELoss().to(device)
@@ -58,6 +61,7 @@ def train(config_name: str, run_name: str, weights_path: str | None = None):
     best_loss = float("inf")
     metrics = defaultdict(list)
     for epoch in range(config.epochs):
+        train_loader.curr_epoch = epoch
         model.train()
         train_count = 0
         train_loss = 0
@@ -92,7 +96,7 @@ def train(config_name: str, run_name: str, weights_path: str | None = None):
                 val_loss += loss_value.item()
 
         metrics["val_loss"].append(val_loss / val_count)
-        
+        """
         test_count = 0
         test_loss = 0
         with torch.no_grad():
@@ -107,12 +111,12 @@ def train(config_name: str, run_name: str, weights_path: str | None = None):
                 test_loss += loss_value.item()
         
         metrics["test_loss"].append(test_loss / test_count)
-
+        """
         print(
             f"Epoch [{epoch+1}/{config.epochs}], "
             f"Train Loss: {metrics['train_loss'][-1]:.4f}, "
             f"Val Loss: {metrics['val_loss'][-1]:.4f}, ",
-            f"Test Loss: {metrics['test_loss'][-1]:.4f}",
+            #f"Test Loss: {metrics['test_loss'][-1]:.4f}",
         )
 
         torch.save(
@@ -124,14 +128,14 @@ def train(config_name: str, run_name: str, weights_path: str | None = None):
             best_loss = metrics["val_loss"][-1]
             torch.save(model.state_dict(), os.path.join(checkpoint_folder, "best.pth"))
             
-    
+    print(f"Best model: {best_loss:.4f}")
     df = pd.DataFrame(metrics)
     df.to_csv(os.path.join(checkpoint_folder, "data.csv"))
 
     plt.figure()
     plt.plot(metrics["train_loss"], label="train_loss")
     plt.plot(metrics["val_loss"], label="val_loss")
-    plt.plot(metrics["test_loss"], label="test_loss")
+    #plt.plot(metrics["test_loss"], label="test_loss")
     plt.legend()
     plt.savefig(os.path.join(checkpoint_folder, "losses.png"))
 

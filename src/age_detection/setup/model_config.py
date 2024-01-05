@@ -12,9 +12,19 @@ class ModelConfig(BaseModel):
 
     checkpoints_path: str
 
+    auto_balance: bool = False
     epochs: int = 10
     batch_size: int = 32
     lr: float = 0.001
+    drop: float = 0.0
+
+    noise_prob: float = 0.0
+    noise_std: float = 0.0
+
+    brightness: float = 0
+    contrast: float = 0
+    saturation: float = 0
+    hue: float = 0
 
     @classmethod
     def load_config(cls, config_name: str, path: str) -> "ModelConfig":
