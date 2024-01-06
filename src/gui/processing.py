@@ -82,13 +82,6 @@ class ProcessingThread(QThread):
         elif self.ad_model_file == "ResNet-based Model":
             return predict_age_resnet50(self.age_model, self.device, face.image)
 
-    def detect_faces_with_haarcascades(self, frame):
-        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        cascade = cv2.CascadeClassifier(self.fd_model_file)
-        detections = cascade.detectMultiScale(gray_frame, scaleFactor=1.1,
-                                              minNeighbors=5, minSize=(40, 40))
-        return detections
-
     def load_age_model(self, model_path):
         model_path = os.path.join("data", "checkpoints", "best_balancing_both.pth")
         self.age_model = resnet50(model_path).to(self.device)
