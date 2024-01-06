@@ -100,7 +100,7 @@ def detect_faces_with_mediapipe(image):
         results = face_detection.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
 
         if not results.detections:
-            return None, []
+            return []
 
         faces = []
 
