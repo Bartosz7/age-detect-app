@@ -20,55 +20,14 @@ from PyQt6.QtWidgets import (QApplication, QComboBox, QGroupBox,
 
 from config import Config
 from face_detection import DetectedFace, Detectors
+from face_detection import (detect_face_with_open_cv,
+                            detect_faces_with_mediapipe)
 
 
 MEAN_VALUE = 37.4
 STD_VALUE = 14.5
 MEAN_COLORS = [0.5646, 0.4326, 0.3711]
 STD_COLORS = [0.2495, 0.2205, 0.2173]
-
-
-def detect_face_with_open_cv(full_image):
-    min_neighbors = 4
-    clasifier = "haarcascade_frontalface_default.xml"
-
-    gray_image = cv2.cvtColor(full_image, cv2.COLOR_BGR2GRAY)
-    face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + clasifier)
-    face = face_classifier.detectMultiScale(
-        gray_image, scaleFactor=1.1, minNeighbors=min_neighbors, minSize=(40, 40)
-    )
-    faces = []
-    for x, y, w, h in face:
-        face = full_image[y : y + h, x : x + w]
-        faces.append(DetectedFace(face, x, y, w, h))
-    return faces
-
-
-def detect_faces_with_mediapipe(image):
-    mp_face_detection = mp.solutions.face_detection
-    with mp_face_detection.FaceDetection(
-        model_selection=1, min_detection_confidence=0.5
-    ) as face_detection:
-        results = face_detection.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-
-        if not results.detections:
-            return []
-
-        faces = []
-
-        for i, detection in enumerate(results.detections):
-            bboxC = detection.location_data.relative_bounding_box
-            ih, iw, _ = image.shape
-            x, y, w, h = (
-                int(bboxC.xmin * iw),
-                int(bboxC.ymin * ih),
-                int(bboxC.width * iw),
-                int(bboxC.height * ih),
-            )
-            face = image[y : y + h, x : x + w]
-            detected_face = DetectedFace(face, x, y, w, h)
-            faces.append(detected_face)
-    return faces
 
 
 def predict_age_resnet50(model_path, image):
@@ -146,6 +105,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_path = os.path.join("data", "checkpoints", "best_balancing_both.pth")
 model = resnet50(model_path).to(device)
 model.eval()
+
+# def load_age_detection_model()
 
 
 class ProcessingThread(QThread):
