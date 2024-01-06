@@ -22,6 +22,7 @@ from config import Config
 from face_detection import DetectedFace, Detectors
 from face_detection import (detect_face_with_open_cv,
                             detect_faces_with_mediapipe)
+from age_detection import resnet50
 
 
 MEAN_VALUE = 37.4
@@ -85,28 +86,11 @@ def inference(run_path: str, image_path: str, model_id: int | None = None):
     age = output.item() * STD_VALUE + MEAN_VALUE # denormalization
     return int(age)
 
-def resnet50(weights_path: str | None = None, drop: float = 0.0):
-    model = torchvision.models.resnet50(pretrained=weights_path is None)
-    last_in_features = model.fc.in_features
-    model.fc = nn.Sequential(
-        nn.Linear(last_in_features, 128),
-        nn.ReLU(),
-        nn.Dropout(drop),
-        nn.Linear(128, 1),
-    )
-
-    if weights_path is not None:
-        model.load_state_dict(torch.load(weights_path))
-    
-    return model
-
 # TODO: remove this after incorporating
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_path = os.path.join("data", "checkpoints", "best_balancing_both.pth")
 model = resnet50(model_path).to(device)
 model.eval()
-
-# def load_age_detection_model()
 
 
 class ProcessingThread(QThread):
