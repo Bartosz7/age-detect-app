@@ -226,12 +226,12 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot()
     def kill_thread(self):
-        print("Finishing live recording...")
-        self.th.camera.release()
+        logging.debug("Finishing live recording...")
+        # self.th.camera.release()
         cv2.destroyAllWindows()
         self.status = False
-        self.th.terminate()
         self.scene.clear()
+        self.th.terminate()
         time.sleep(2) # Give time for the thread to finish
 
     @pyqtSlot()
