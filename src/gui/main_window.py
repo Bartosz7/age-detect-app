@@ -12,7 +12,7 @@ from torchvision import transforms
 import torch.nn as nn
 from PIL import Image
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, pyqtSlot, QSize, QRectF
-from PyQt6.QtGui import QAction, QImage, QKeySequence, QPixmap, QIcon
+from PyQt6.QtGui import QAction, QImage, QPixmap, QIcon, QKeyEvent
 from PyQt6.QtWidgets import (QApplication, QComboBox, QGroupBox,
                              QHBoxLayout, QLabel, QMainWindow, QPushButton,
                              QSizePolicy, QVBoxLayout, QWidget, QFileDialog,
@@ -150,6 +150,17 @@ class MainWindow(QMainWindow):
         # Connections
         self.connect_all()
 
+    def event(self, event):
+        if event.type() == QKeyEvent.Type.KeyPress:
+            if event.key() == Qt.Key.Key_Right:
+                self.next_button.click()
+                return True
+            elif event.key() == Qt.Key.Key_Left:
+                self.prev_button.click()
+                return True
+            return False  # Indicate the event was handled
+        return super().event(event)
+
     def create_group_face_det(self):
         # Face detection Model Group
         self.group_face_model = QGroupBox("Face detection model")
@@ -190,6 +201,8 @@ class MainWindow(QMainWindow):
         if file_dialog.exec():
             self.images = file_dialog.selectedFiles()
             self.total_images = len(self.images)
+            self.prev_button.setHidden(False)
+            self.next_button.setHidden(False)
             self.show_image(0)
             logging.debug(self.images)
 
@@ -208,7 +221,16 @@ class MainWindow(QMainWindow):
 
             self.images = image_files
             self.total_images = len(self.images)
+            self.prev_button.setHidden(False)
+            self.next_button.setHidden(False)
+            self.prev_button.setEnabled(False)
             self.show_image(0)
+
+    def reset_graphics_display(self):
+        self.scene = QGraphicsScene()
+        self.view.setScene(self.scene)
+        self.view.fitInView(self.scene.sceneRect(),
+                            Qt.AspectRatioMode.KeepAspectRatio)
 
     def show_about_page(self):
         about_dialog = AboutDialog(self)
@@ -226,12 +248,24 @@ class MainWindow(QMainWindow):
         self.image_label.setText(f"{image_file} ({index + 1} of {self.total_images})")
 
     def show_previous(self):
-        if self.current_image_index > 0:
+        self.next_button.setEnabled(True)
+        if self.current_image_index == 1:
+            self.prev_button.setEnabled(False)
+            self.current_image_index -= 1
+            self.show_image(self.current_image_index)
+        if self.current_image_index > 1:
+            self.prev_button.setEnabled(True)
             self.current_image_index -= 1
             self.show_image(self.current_image_index)
 
     def show_next(self):
-        if self.current_image_index < len(self.images) - 1:
+        self.prev_button.setEnabled(True)
+        if self.current_image_index == len(self.images) - 2:
+            self.next_button.setEnabled(False)
+            self.current_image_index += 1
+            self.show_image(self.current_image_index)
+        if self.current_image_index < len(self.images) - 2:
+            self.next_button.setEnabled(True)
             self.current_image_index += 1
             self.show_image(self.current_image_index)
 
@@ -258,6 +292,7 @@ class MainWindow(QMainWindow):
             self.prev_button.setHidden(False)
             self.next_button.setHidden(False)
             self.kill_thread()
+            self.reset_graphics_display()
 
     @pyqtSlot(QImage)
     def setImage(self, image):
@@ -284,7 +319,7 @@ class MainWindow(QMainWindow):
         self.th.camera.release()
         self.live = False
         self.th.terminate()
-        time.sleep(1)  # Give time for the thread to finish
+        time.sleep(2)  # Give time for the thread to finish
 
     @pyqtSlot()
     def start(self):
