@@ -5,12 +5,6 @@ import logging
 from functools import reduce
 
 import cv2
-import mediapipe as mp
-import torch
-import torchvision
-from torchvision import transforms
-import torch.nn as nn
-from PIL import Image
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, pyqtSlot, QSize, QRectF
 from PyQt6.QtGui import QAction, QImage, QPixmap, QIcon, QKeyEvent
 from PyQt6.QtWidgets import (QApplication, QComboBox, QGroupBox,
@@ -42,7 +36,7 @@ class MainWindow(QMainWindow):
         self.menu_file = self.menu.addMenu("Start")
         # Scenario 3A
         load_images_action = QAction("Select Image(s)", self)
-        load_images_action.triggered.connect(self.openFileDialogAndChooseImages)
+        load_images_action.triggered.connect(self.load_images_from_selection)
         self.menu_file.addAction(load_images_action)
         # Scenario 3B
         load_images_from_dir_action = QAction("Select Images from Folder", self)
@@ -142,8 +136,8 @@ class MainWindow(QMainWindow):
 
         # Thread in charge of updating the image
         self.th = ProcessingThread(self)
-        self.th.finished.connect(self.removeImage)
-        self.th.updateFrame.connect(self.setImage)
+        self.th.finished.connect(self.remove_image)
+        self.th.updateFrame.connect(self.set_image)
         # Connections
         self.connect_all()
 
@@ -194,7 +188,7 @@ class MainWindow(QMainWindow):
         self.fd_combobox.currentTextChanged.connect(self.set_fd_model)
         self.ad_combobox.currentTextChanged.connect(self.set_ad_model)
 
-    def openFileDialogAndChooseImages(self):
+    def load_images_from_selection(self):
         file_dialog = QFileDialog()
         file_dialog.setNameFilter("Images (*.png *.jpg *.jpeg)")
         file_dialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
@@ -279,7 +273,7 @@ class MainWindow(QMainWindow):
             self.show_image(self.current_image_index)
 
     def load_video_file(self):
-        print("load_video_file")
+        raise NotImplementedError()
 
     def set_fd_model(self, face_detector_name: str):
         self.th.set_fd_model(face_detector_name)
@@ -288,7 +282,7 @@ class MainWindow(QMainWindow):
         self.th.set_ad_file(text)
 
     def btn_toggle_clicked(self):
-        self.removeImage()
+        self.remove_image()
         if self.btn_toggle.isChecked():
             self.images = []
             self.total_images = 0
@@ -302,7 +296,7 @@ class MainWindow(QMainWindow):
             self.reset_graphics_display()
 
     @pyqtSlot(QImage)
-    def setImage(self, image):
+    def set_image(self, image):
         if self.live:
             pixmap = QPixmap.fromImage(image)
             self.scene.clear()
@@ -316,13 +310,13 @@ class MainWindow(QMainWindow):
                                 Qt.AspectRatioMode.KeepAspectRatio)
 
     @pyqtSlot()
-    def removeImage(self):
+    def remove_image(self):
         self.scene.clear()
 
     @pyqtSlot()
     def kill_thread(self):
         logging.debug("Finishing live recording...")
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows()  # TODO: check if needed
         self.th.camera.release()
         self.live = False
         self.th.terminate()

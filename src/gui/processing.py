@@ -8,8 +8,6 @@ from PyQt6.QtGui import QImage
 
 from config import Config
 from face_detection import DetectedFace, FaceDetectors, FaceDetectorFactory
-# from face_detection import (detect_face_with_open_cv,
-#                             detect_faces_with_mediapipe)
 from age_detection import resnet50, predict_age_resnet50
 
 
@@ -56,9 +54,7 @@ class ProcessingThread(QThread):
             self.updateFrame.emit(scaled_img)
 
     def set_fd_model(self, face_detector_name: str):
-        print(f"face_detector_name {face_detector_name}")
         face_detector = Config.FACE_DETECTION_MODELS.get(face_detector_name)
-        print(face_detector, type(face_detector))
         face_detector_factory = FaceDetectorFactory()
         self.fd_detector = face_detector_factory.create_model(face_detector)
 
