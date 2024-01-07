@@ -48,6 +48,7 @@ class MainWindow(QMainWindow):
         load_images_from_dir_action = QAction("Select Images from Folder", self)
         # load_images_from_dir_action.triggered.connect()
         self.menu_file.addAction(load_images_from_dir_action)
+        load_images_from_dir_action.triggered.connect(self.load_folder_images)
         # Scenario 2
         load_video_action = QAction("Select Video", self)
         load_video_action.triggered.connect(self.load_video_file)
@@ -105,15 +106,15 @@ class MainWindow(QMainWindow):
         right_layout.addWidget(self.image_label)
 
         # Nav. buttons
-        buttons_layout = QHBoxLayout()
-        buttons_layout.setContentsMargins(0, 0, 0, 0)
-        buttons_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.buttons_layout = QHBoxLayout()
+        self.buttons_layout.setContentsMargins(0, 0, 0, 0)
+        self.buttons_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.prev_button = QPushButton("<")
         # self.prev_button.setStyleSheet("background: transparent; border: none; color: white; font-size: 18px;")
         self.next_button = QPushButton(">")
         # self.next_button.setStyleSheet("background: transparent; border: none; color: white; font-size: 18px;")
-        buttons_layout.addWidget(self.prev_button)
-        buttons_layout.addWidget(self.next_button)
+        self.buttons_layout.addWidget(self.prev_button)
+        self.buttons_layout.addWidget(self.next_button)
 
         self.prev_button.clicked.connect(self.show_previous)
         self.next_button.clicked.connect(self.show_next)
@@ -124,7 +125,7 @@ class MainWindow(QMainWindow):
 
         # Right Panel
         right_layout.addWidget(self.view)
-        right_layout.addLayout(buttons_layout)
+        right_layout.addLayout(self.buttons_layout)
 
         # Splitter
         splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -189,6 +190,7 @@ class MainWindow(QMainWindow):
         if file_dialog.exec():
             self.images = file_dialog.selectedFiles()
             self.total_images = len(self.images)
+            self.show_image(0)
             logging.debug(self.images)
 
     def open_directory_dialog(self):
@@ -199,33 +201,29 @@ class MainWindow(QMainWindow):
         logging.debug("Action: load photo directory")
         folder_path = self.open_directory_dialog()
         if folder_path:
-            print(folder_path)
-            # TODO: photo loading, separate logic
-            # Perform operations to load and display images from the folder
-            # Example:
-            # Iterate through images in the folder and display them in the label
-            # Here, you would use methods to load and display the images in the label
+            image_extensions = ['.jpg', '.jpeg', '.png']
+            image_files = [os.path.join(folder_path, file) for file in os.listdir(folder_path)
+                           if os.path.isfile(os.path.join(folder_path, file)) and
+                           os.path.splitext(file)[1].lower() in image_extensions]
 
-            # For example, assuming images are loaded into a list of paths:
-            # images = [list of photo file paths]
-            # # Load the first photo from the folder
-            # if images:
-            #     pixmap = QPixmap(images[0])
-            #     self.label.setPixmap(pixmap)
+            self.images = image_files
+            self.total_images = len(self.images)
+            self.show_image(0)
 
     def show_about_page(self):
         about_dialog = AboutDialog(self)
         about_dialog.exec()
 
     def show_image(self, index):
-        pixmap = QPixmap(self.images[index])
+        image_fullpath = self.images[index]
+        image_file = os.path.basename(image_fullpath)
+        pixmap = QPixmap(image_fullpath)
         self.scene.clear()
         self.scene.addPixmap(pixmap)
         self.view.setScene(self.scene)
         self.view.fitInView(self.scene.sceneRect(),
                             Qt.AspectRatioMode.KeepAspectRatio)
-        # Update index label
-        self.image_label.setText(f"Image {index + 1} of {self.total_images}")
+        self.image_label.setText(f"{image_file} ({index + 1} of {self.total_images})")
 
     def show_previous(self):
         if self.current_image_index > 0:
@@ -247,11 +245,18 @@ class MainWindow(QMainWindow):
         self.th.set_ad_file(text)
 
     def btn_toggle_clicked(self):
+        self.removeImage()
         if self.btn_toggle.isChecked():
+            self.images = []
+            self.total_images = 0
             self.btn_toggle.setText("Stop")
+            self.prev_button.setHidden(True)
+            self.next_button.setHidden(True)
             self.start()
         else:
             self.btn_toggle.setText("Start")
+            self.prev_button.setHidden(False)
+            self.next_button.setHidden(False)
             self.kill_thread()
 
     @pyqtSlot(QImage)
