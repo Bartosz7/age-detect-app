@@ -22,6 +22,7 @@ from PyQt6.QtWidgets import (QApplication, QComboBox, QGroupBox,
 from config import Config
 from face_detection import DetectedFace, FaceDetectors
 from gui.processing import ProcessingThread
+from gui.about import AboutDialog
 
 
 class MainWindow(QMainWindow):
@@ -54,8 +55,8 @@ class MainWindow(QMainWindow):
         exit = QAction("Exit", self, triggered=QApplication.quit)
         self.menu_file.addAction(exit)
         self.menu_about = self.menu.addMenu("&About")
-        about = QAction("About", self,
-                        triggered=QApplication.aboutQt)
+        about = QAction("About", self)
+        about.triggered.connect(self.show_about_page)
         license = QAction("License", self,
                           triggered=QApplication.aboutQt)
         self.menu_about.addAction(about)
@@ -211,6 +212,10 @@ class MainWindow(QMainWindow):
             # if images:
             #     pixmap = QPixmap(images[0])
             #     self.label.setPixmap(pixmap)
+
+    def show_about_page(self):
+        about_dialog = AboutDialog(self)
+        about_dialog.exec()
 
     def show_image(self, index):
         pixmap = QPixmap(self.images[index])
