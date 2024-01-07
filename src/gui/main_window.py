@@ -46,13 +46,13 @@ class MainWindow(QMainWindow):
         self.menu_file.addAction(load_images_action)
         # Scenario 3B
         load_images_from_dir_action = QAction("Select Images from Folder", self)
-        # load_images_from_dir_action.triggered.connect()
         self.menu_file.addAction(load_images_from_dir_action)
         load_images_from_dir_action.triggered.connect(self.load_folder_images)
         # Scenario 2
         load_video_action = QAction("Select Video", self)
         load_video_action.triggered.connect(self.load_video_file)
         self.menu_file.addAction(load_video_action)
+        # Other Actions
         exit = QAction("Exit", self, triggered=QApplication.quit)
         self.menu_file.addAction(exit)
         self.menu_about = self.menu.addMenu("&About")
@@ -63,7 +63,7 @@ class MainWindow(QMainWindow):
         self.menu_about.addAction(about)
         self.menu_about.addAction(license)
 
-        # Options layout (left panel)
+        # Left Panel: options layout
         self.create_group_face_det()
         self.create_group_age_det()
         options_layout = QVBoxLayout()
@@ -85,7 +85,7 @@ class MainWindow(QMainWindow):
         options_group_box.setLayout(options_and_buttons_layout)
         options_group_box.setMaximumWidth(300)
 
-        # Right Panel
+        # Right Panel: Graphics and navigation
         self.image_label = QLabel("Source Filename")
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         self.view = QGraphicsView(self)
@@ -110,12 +110,9 @@ class MainWindow(QMainWindow):
         self.buttons_layout.setContentsMargins(0, 0, 0, 0)
         self.buttons_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.prev_button = QPushButton("<")
-        # self.prev_button.setStyleSheet("background: transparent; border: none; color: white; font-size: 18px;")
         self.next_button = QPushButton(">")
-        # self.next_button.setStyleSheet("background: transparent; border: none; color: white; font-size: 18px;")
         self.buttons_layout.addWidget(self.prev_button)
         self.buttons_layout.addWidget(self.next_button)
-
         self.prev_button.clicked.connect(self.show_previous)
         self.next_button.clicked.connect(self.show_next)
 
@@ -149,6 +146,11 @@ class MainWindow(QMainWindow):
         self.th.updateFrame.connect(self.setImage)
         # Connections
         self.connect_all()
+
+    def reset_images(self):
+        self.images = []
+        self.total_images = len(self.images)
+        self.current_image_index = 0
 
     def event(self, event):
         if event.type() == QKeyEvent.Type.KeyPress:
@@ -200,11 +202,17 @@ class MainWindow(QMainWindow):
 
         if file_dialog.exec():
             self.images = file_dialog.selectedFiles()
+            self.current_image_index = 0
             self.total_images = len(self.images)
-            self.prev_button.setHidden(False)
-            self.next_button.setHidden(False)
+            if self.total_images > 1:
+                self.prev_button.setHidden(False)
+                self.next_button.setHidden(False)
+                self.prev_button.setEnabled(False)
+                self.next_button.setEnabled(True)
+            if self.total_images == 1:
+                self.prev_button.setHidden(True)
+                self.next_button.setHidden(True)
             self.show_image(0)
-            logging.debug(self.images)
 
     def open_directory_dialog(self):
         """Opens directory selection window"""
@@ -218,12 +226,13 @@ class MainWindow(QMainWindow):
             image_files = [os.path.join(folder_path, file) for file in os.listdir(folder_path)
                            if os.path.isfile(os.path.join(folder_path, file)) and
                            os.path.splitext(file)[1].lower() in image_extensions]
-
+            self.current_image_index = 0
             self.images = image_files
             self.total_images = len(self.images)
             self.prev_button.setHidden(False)
             self.next_button.setHidden(False)
             self.prev_button.setEnabled(False)
+            self.next_button.setEnabled(True)
             self.show_image(0)
 
     def reset_graphics_display(self):
@@ -289,8 +298,6 @@ class MainWindow(QMainWindow):
             self.start()
         else:
             self.btn_toggle.setText("Start")
-            self.prev_button.setHidden(False)
-            self.next_button.setHidden(False)
             self.kill_thread()
             self.reset_graphics_display()
 
