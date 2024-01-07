@@ -41,7 +41,7 @@ class MainWindow(QMainWindow):
         self.menu = self.menuBar()
         self.menu_file = self.menu.addMenu("Start")
         # Scenario 3A
-        load_images_action = QAction("Select Images", self)
+        load_images_action = QAction("Select Image(s)", self)
         load_images_action.triggered.connect(self.openFileDialogAndChooseImages)
         self.menu_file.addAction(load_images_action)
         # Scenario 3B
