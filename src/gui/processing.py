@@ -21,41 +21,24 @@ class ProcessingThread(QThread):
 
     def __init__(self, parent=None):
         QThread.__init__(self, parent)
-        self.fd_model_file = None
-        self.ad_model_file = None
-        self.status = True
+        self.status = True  # live camera status
         self.camera = True
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cuda" if torch.cuda.is_available()
+                                   else "cpu")
+        self.ad_model_file = None
         self.age_model = None
         self.load_age_model("")
-        self.selected_files = []
-        self.age_info = []
-
-    def set_fd_file(self, fname):
-        # The data comes with the 'opencv-python' module
-        # TODO: change to account for internal models and/or MediaPipe
-        logging.debug(f"Face detection model set: {fname}")
-        if fname.startswith("HaarCascade"):
-            self.fd_detector = Detectors.OPEN_CV
-            self.fd_model_file = os.path.join(cv2.data.haarcascades, Config.FACE_DETECTION_MODELS.get(fname))
-        elif fname == "MediaPipe":
-            self.fd_detector = Detectors.MEDIAPIPE
-            self.fd_model_file = None
-        else:
-            self.fd_model_file = None
-
-    def set_ad_file(self, fname):
-        logging.debug(f"Age detection model set: {fname}")
-        self.ad_model_file = fname
 
     def run(self):
         self.camera = cv2.VideoCapture(0)  # web camera input
         while self.status:
 
+            # Get current frame
             ret, frame = self.camera.read()
             if not ret:
                 continue
 
+            # Detect faces
             detected_faces = []
             if self.fd_detector == Detectors.OPEN_CV:
                 detected_faces = detect_face_with_open_cv(frame)
@@ -75,6 +58,19 @@ class ProcessingThread(QThread):
             img = QImage(color_frame.data, w, h, ch * w, QImage.Format.Format_RGB888)
             scaled_img = img.scaled(640, 480, Qt.AspectRatioMode.KeepAspectRatio)
             self.updateFrame.emit(scaled_img)
+
+    def set_fd_file(self, fname):
+        logging.debug(f"Face detection model set: {fname}")
+        if fname.startswith("HaarCascade"):
+            self.fd_detector = Detectors.OPEN_CV
+        elif fname == "MediaPipe":
+            self.fd_detector = Detectors.MEDIAPIPE
+        else:
+            pass
+
+    def set_ad_file(self, fname):
+        logging.debug(f"Age detection model set: {fname}")
+        self.ad_model_file = fname
 
     def predict_age(self, face):
         if self.ad_model_file == "Sweet18 Model":

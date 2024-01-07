@@ -14,9 +14,9 @@ from PIL import Image
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, pyqtSlot, QSize
 from PyQt6.QtGui import QAction, QImage, QKeySequence, QPixmap, QIcon
 from PyQt6.QtWidgets import (QApplication, QComboBox, QGroupBox,
-                               QHBoxLayout, QLabel, QMainWindow, QPushButton,
-                               QSizePolicy, QVBoxLayout, QWidget, QFileDialog,
-                               QGraphicsView, QGraphicsScene, QSplitter, QSpacerItem)
+                             QHBoxLayout, QLabel, QMainWindow, QPushButton,
+                             QSizePolicy, QVBoxLayout, QWidget, QFileDialog,
+                             QGraphicsView, QGraphicsScene, QSplitter)
 
 from config import Config
 from face_detection import DetectedFace, Detectors
@@ -31,7 +31,8 @@ class MainWindow(QMainWindow):
         # Title and dimensions
         self.setWindowTitle(Config.TITLE)
         self.setGeometry(0, 0, 800, 500)
-        # https://www.flaticon.com/free-icons/age-group, Age group icons created by Freepik - Flaticon
+        # https://www.flaticon.com/free-icons/age-group
+        # Age group icons created by Freepik - Flaticon
         self.setWindowIcon(QIcon(os.path.join(Config.STATIC_DIR_PATH, "age-group.png")))
 
         # Main menu bar with actions
@@ -49,7 +50,7 @@ class MainWindow(QMainWindow):
         about = QAction("About", self,
                         triggered=QApplication.aboutQt)
         license = QAction("License", self,
-                        triggered=QApplication.aboutQt)
+                          triggered=QApplication.aboutQt)
         self.menu_about.addAction(about)
         self.menu_about.addAction(license)
 
@@ -96,7 +97,8 @@ class MainWindow(QMainWindow):
 
         buttons_layout = QHBoxLayout()
         self.btn_toggle = QPushButton("Start")
-        self.btn_toggle.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
+        self.btn_toggle.setSizePolicy(QSizePolicy.Policy.Preferred,
+                                      QSizePolicy.Policy.Expanding)
         self.btn_toggle.setCheckable(True)
         buttons_layout.addWidget(self.btn_toggle)
 
@@ -136,7 +138,8 @@ class MainWindow(QMainWindow):
     def create_group_face_det(self):
         # Face detection Model Group
         self.group_face_model = QGroupBox("Face detection model")
-        self.group_face_model.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
+        self.group_face_model.setSizePolicy(QSizePolicy.Policy.Preferred,
+                                            QSizePolicy.Policy.Expanding)
         model_layout = QHBoxLayout()
         self.fd_combobox = QComboBox()
         for fd_model_name in Config.FACE_DETECTION_MODELS.keys():
@@ -148,7 +151,8 @@ class MainWindow(QMainWindow):
     def create_group_age_det(self):
         # Age detection Model Group
         self.group_age_model = QGroupBox("Age detection model")
-        self.group_age_model.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
+        self.group_age_model.setSizePolicy(QSizePolicy.Policy.Preferred,
+                                           QSizePolicy.Policy.Expanding)
         model_layout = QHBoxLayout()
         self.ad_combobox = QComboBox()
         for model in Config.AGE_DETECTION_MODELS.keys():
@@ -156,12 +160,12 @@ class MainWindow(QMainWindow):
         model_layout.addWidget(QLabel("Model:"), 10)
         model_layout.addWidget(self.ad_combobox, 90)
         self.group_age_model.setLayout(model_layout)
-    
+
     def connect_all(self):
         self.btn_toggle.clicked.connect(self.btn_toggle_clicked)
         self.fd_combobox.currentTextChanged.connect(self.set_fd_model)
         self.ad_combobox.currentTextChanged.connect(self.set_ad_model)
-        
+
     def openFileDialogAndChooseImages(self):
         file_dialog = QFileDialog()
         file_dialog.setNameFilter("Images (*.png *.jpg *.jpeg)")
@@ -172,9 +176,8 @@ class MainWindow(QMainWindow):
             self.selected_files = file_dialog.selectedFiles()
         logging.debug(self.selected_files)
 
-
-    # Function to open a directory selection window
     def open_directory_dialog(self):
+        """Opens directory selection window"""
         return QFileDialog.getExistingDirectory(self, "Select Folder of Photos")
 
     def load_folder_photos(self):
@@ -218,7 +221,8 @@ class MainWindow(QMainWindow):
         self.scene.clear()
         self.scene.addPixmap(pixmap)
         self.view.setScene(self.scene)
-        self.view.fitInView(self.scene.sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
+        self.view.fitInView(self.scene.sceneRect(),
+                            Qt.AspectRatioMode.KeepAspectRatio)
 
     @pyqtSlot()
     def removeImage(self):
@@ -232,7 +236,7 @@ class MainWindow(QMainWindow):
         self.status = False
         self.scene.clear()
         self.th.terminate()
-        time.sleep(2) # Give time for the thread to finish
+        time.sleep(2)  # Give time for the thread to finish
 
     @pyqtSlot()
     def start(self):
@@ -240,7 +244,6 @@ class MainWindow(QMainWindow):
         self.th.set_fd_file(self.fd_combobox.currentText())
         self.th.set_ad_file(self.ad_combobox.currentText())
         self.th.start()
-
 
 
 if __name__ == "__main__":
