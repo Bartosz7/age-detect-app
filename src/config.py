@@ -1,5 +1,6 @@
 import os
 import cv2
+from face_detection import FaceDetectors
 
 
 class Config:
@@ -21,13 +22,12 @@ class Config:
     # Models (this may be a path to a file or un/loaded model handler)
     # Note: they will appear in the GUI in the same order (first one is default)
     FACE_DETECTION_MODELS = {
-        "HaarCascade Frontal Face (default)": os.path.join(cv2.data.haarcascades, "haarcascade_frontalface_default.xml"),
-        "HaarCascade Frontal Face (alt)": os.path.join(cv2.data.haarcascades, "haarcascade_frontalface_alt.xml"),
-        "HaarCascade Frontal Face (alt2)": os.path.join(cv2.data.haarcascades, "haarcascade_frontalface_alt2.xml"),
-        "HaarCascade Profile Face": os.path.join(cv2.data.haarcascades, "haarcascade_profileface.xml"),
-        "MediaPipe": "mediapipe",
+        # GUI/text name : FaceDetectors.Enum
+        "MediaPipe": FaceDetectors.MEDIAPIPE,
+        "HaarCascade Frontal Face default": FaceDetectors.HAAR_CASCADE
     }
     AGE_DETECTION_MODELS = {
+        # GUI/text name : AgeDetector.Enum
         "Sweet18 Model": "model18",
         "ResNet-based Model": "resnetmodel"
     }

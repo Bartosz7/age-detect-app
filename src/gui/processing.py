@@ -7,9 +7,9 @@ from PyQt6.QtCore import Qt, QThread, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QImage
 
 from config import Config
-from face_detection import DetectedFace, Detectors
-from face_detection import (detect_face_with_open_cv,
-                            detect_faces_with_mediapipe)
+from face_detection import DetectedFace, FaceDetectors, FaceDetectorFactory
+# from face_detection import (detect_face_with_open_cv,
+#                             detect_faces_with_mediapipe)
 from age_detection import resnet50, predict_age_resnet50
 
 
@@ -39,11 +39,7 @@ class ProcessingThread(QThread):
                 continue
 
             # Detect faces
-            detected_faces = []
-            if self.fd_detector == Detectors.OPEN_CV:
-                detected_faces = detect_face_with_open_cv(frame)
-            elif self.fd_detector == Detectors.MEDIAPIPE:
-                detected_faces = detect_faces_with_mediapipe(frame)
+            detected_faces = self.fd_detector.detect_faces(frame)
 
             # Adjusting image on the live video
             for face in detected_faces:
@@ -59,14 +55,12 @@ class ProcessingThread(QThread):
             scaled_img = img.scaled(640, 480, Qt.AspectRatioMode.KeepAspectRatio)
             self.updateFrame.emit(scaled_img)
 
-    def set_fd_file(self, fname):
-        logging.debug(f"Face detection model set: {fname}")
-        if fname.startswith("HaarCascade"):
-            self.fd_detector = Detectors.OPEN_CV
-        elif fname == "MediaPipe":
-            self.fd_detector = Detectors.MEDIAPIPE
-        else:
-            pass
+    def set_fd_model(self, face_detector_name: str):
+        print(f"face_detector_name {face_detector_name}")
+        face_detector = Config.FACE_DETECTION_MODELS.get(face_detector_name)
+        print(face_detector, type(face_detector))
+        face_detector_factory = FaceDetectorFactory()
+        self.fd_detector = face_detector_factory.create_model(face_detector)
 
     def set_ad_file(self, fname):
         logging.debug(f"Age detection model set: {fname}")

@@ -19,7 +19,7 @@ from PyQt6.QtWidgets import (QApplication, QComboBox, QGroupBox,
                              QGraphicsView, QGraphicsScene, QSplitter)
 
 from config import Config
-from face_detection import DetectedFace, Detectors
+from face_detection import DetectedFace, FaceDetectors
 from gui.processing import ProcessingThread
 
 
@@ -38,10 +38,16 @@ class MainWindow(QMainWindow):
         # Main menu bar with actions
         self.menu = self.menuBar()
         self.menu_file = self.menu.addMenu("Start")
-        load_photos_action = QAction("Load Photos", self)
+        # Scenario 3A
+        load_photos_action = QAction("Select Images", self)
         load_photos_action.triggered.connect(self.openFileDialogAndChooseImages)
         self.menu_file.addAction(load_photos_action)
-        load_video_action = QAction("Load Video", self)
+        # Scenario 3B
+        load_photos_from_dir_action = QAction("Select Images from Folder", self)
+        # load_photos_from_dir_action.triggered.connect()
+        self.menu_file.addAction(load_photos_from_dir_action)
+        # Scenario 2
+        load_video_action = QAction("Select Video", self)
         load_video_action.triggered.connect(self.load_video_file)
         self.menu_file.addAction(load_video_action)
         exit = QAction("Exit", self, triggered=QApplication.quit)
@@ -201,8 +207,8 @@ class MainWindow(QMainWindow):
     def load_video_file(self):
         print("load_video_file")
 
-    def set_fd_model(self, text):
-        self.th.set_fd_file(text)
+    def set_fd_model(self, face_detector_name: str):
+        self.th.set_fd_model(face_detector_name)
 
     def set_ad_model(self, text):
         self.th.set_ad_file(text)
@@ -217,12 +223,13 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot(QImage)
     def setImage(self, image):
-        pixmap = QPixmap.fromImage(image)
-        self.scene.clear()
-        self.scene.addPixmap(pixmap)
-        self.view.setScene(self.scene)
-        self.view.fitInView(self.scene.sceneRect(),
-                            Qt.AspectRatioMode.KeepAspectRatio)
+        if self.live:
+            pixmap = QPixmap.fromImage(image)
+            self.scene.clear()
+            self.scene.addPixmap(pixmap)
+            self.view.setScene(self.scene)
+            self.view.fitInView(self.scene.sceneRect(),
+                                Qt.AspectRatioMode.KeepAspectRatio)
 
     @pyqtSlot()
     def removeImage(self):
@@ -231,17 +238,17 @@ class MainWindow(QMainWindow):
     @pyqtSlot()
     def kill_thread(self):
         logging.debug("Finishing live recording...")
-        # self.th.camera.release()
         cv2.destroyAllWindows()
-        self.status = False
-        self.scene.clear()
+        self.th.camera.release()
+        self.live = False
         self.th.terminate()
-        time.sleep(2)  # Give time for the thread to finish
+        time.sleep(1)  # Give time for the thread to finish
 
     @pyqtSlot()
     def start(self):
         logging.debug("Starting live video capture...")
-        self.th.set_fd_file(self.fd_combobox.currentText())
+        self.live = True
+        self.th.set_fd_model(self.fd_combobox.currentText())
         self.th.set_ad_file(self.ad_combobox.currentText())
         self.th.start()
 
