@@ -60,43 +60,9 @@ class MainWindow(QMainWindow):
         self.menu_about.addAction(about)
         self.menu_about.addAction(license)
 
-        # Add source label
-        # source_layout = QHBoxLayout()
-        # switch_btn_layout = QHBoxLayout()
-        # source_label = QLabel("Source:")
-        # source_layout.addWidget(source_label)
-        # Add buttons "<" and ">"
-        # btn_left = QPushButton("<")
-        # btn_right = QPushButton(">")
-        # btn_left.setEnabled(False)
-        # btn_right.setEnabled(False)
-        # btn_left.setHidden(True)
-        # btn_right.setHidden(True)
-        # switch_btn_layout.addWidget(btn_left)
-        # switch_btn_layout.addWidget(btn_right)
-
-        # Create radio buttons for different usage scenarios
-        # scenario_layout = QHBoxLayout()
-        # radio_realtime = QRadioButton("Real-time Video Capture")
-        # radio_video_upload = QRadioButton("Video Upload")
-        # radio_image_upload = QRadioButton("Images Directory Upload")
-        # scenario_layout.addWidget(radio_realtime)
-        # scenario_layout.addWidget(radio_video_upload)
-        # scenario_layout.addWidget(radio_image_upload)
-
-        # Create a label for the display camera
-        self.view = QGraphicsView(self)
-        self.view.setMinimumSize(QSize(640, 480))
-        self.view.setStyleSheet("border: 2px solid black;background-color: #333333;")
-        # pixmap = QPixmap(os.path.join(Config.STATIC_DIR_PATH, "quote.png"))
-        self.scene = QGraphicsScene()
-        # self.scene.addPixmap(pixmap)
-        self.view.setScene(self.scene)
-        # create model choice comboboxes
+        # Options layout (left panel)
         self.create_group_face_det()
         self.create_group_age_det()
-
-        # Options layout
         options_layout = QVBoxLayout()
         options_layout.addWidget(self.group_face_model)
         options_layout.addWidget(self.group_age_model)
@@ -115,6 +81,16 @@ class MainWindow(QMainWindow):
         options_group_box = QGroupBox("Settings")
         options_group_box.setLayout(options_and_buttons_layout)
         options_group_box.setMaximumWidth(300)
+
+        # Right Panel
+        # Create a label for the display camera
+        self.view = QGraphicsView(self)
+        self.view.setMinimumSize(QSize(640, 480))
+        self.view.setStyleSheet("border: 2px solid black;background-color: #333333;")
+        # pixmap = QPixmap(os.path.join(Config.STATIC_DIR_PATH, "quote.png"))
+        self.scene = QGraphicsScene()
+        # self.scene.addPixmap(pixmap)
+        self.view.setScene(self.scene)
 
         # Right layout only for QGraphics
         right_layout = QVBoxLayout()
@@ -180,7 +156,7 @@ class MainWindow(QMainWindow):
 
         if file_dialog.exec():
             self.selected_files = file_dialog.selectedFiles()
-        logging.debug(self.selected_files)
+            logging.debug(self.selected_files)
 
     def open_directory_dialog(self):
         """Opens directory selection window"""
