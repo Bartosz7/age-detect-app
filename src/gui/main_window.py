@@ -5,7 +5,8 @@ import logging
 from functools import reduce
 
 import cv2
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, pyqtSlot, QSize, QRectF
+from PyQt6.QtCore import (Qt, QThread, pyqtSignal, pyqtSlot,
+                          QSize, QRectF, QTimer)
 from PyQt6.QtGui import QAction, QImage, QPixmap, QIcon, QKeyEvent
 from PyQt6.QtWidgets import (QApplication, QComboBox, QGroupBox,
                              QHBoxLayout, QLabel, QMainWindow, QPushButton,
@@ -141,10 +142,30 @@ class MainWindow(QMainWindow):
         # Connections
         self.connect_all()
 
+        # Video Player timer 
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_video)
+
     def reset_images(self):
         self.images = []
         self.total_images = len(self.images)
         self.current_image_index = 0
+
+    def update_video(self):
+        ret, frame = self.capture.read()
+
+        if ret:
+            height, width, channel = frame.shape
+            bytes_per_line = 3 * width
+            q_image = QImage(frame.data, width, height, bytes_per_line, QImage.Format.Format_RGB888).rgbSwapped()
+            self.scene.clear()
+            self.scene.addPixmap(QPixmap.fromImage(q_image))
+            self.view.fitInView(self.scene.sceneRect(),
+                                Qt.AspectRatioMode.KeepAspectRatio)
+            # current_frame = int(self.capture.get(cv2.CAP_PROP_POS_FRAMES))
+        else:
+            self.timer.stop()
+            self.capture.release()
 
     def event(self, event):
         if event.type() == QKeyEvent.Type.KeyPress:
@@ -189,6 +210,7 @@ class MainWindow(QMainWindow):
         self.ad_combobox.currentTextChanged.connect(self.set_ad_model)
 
     def load_images_from_selection(self):
+        self.timer.stop()
         file_dialog = QFileDialog()
         file_dialog.setNameFilter("Images (*.png *.jpg *.jpeg)")
         file_dialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
@@ -214,6 +236,7 @@ class MainWindow(QMainWindow):
 
     def load_folder_images(self):
         logging.debug("Action: load photo directory")
+        self.timer.stop()
         folder_path = self.open_directory_dialog()
         if folder_path:
             image_extensions = ['.jpg', '.jpeg', '.png']
@@ -273,7 +296,21 @@ class MainWindow(QMainWindow):
             self.show_image(self.current_image_index)
 
     def load_video_file(self):
-        raise NotImplementedError()
+        self.timer.stop()
+        file_dialog = QFileDialog()
+        filepath, _ = file_dialog.getOpenFileName(self, "Open Video", "", "Video Files (*.mp4 *.avi *.mkv)")
+
+        if filepath:
+            self.capture = cv2.VideoCapture(filepath)
+            self.total_frames = int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))
+            # self.slider.setMinimum(0)
+            # self.slider.setMaximum(self.total_frames - 1)
+            self.play_video()
+
+    def play_video(self):
+        self.reset_graphics_display()
+        if not self.timer.isActive():
+            self.timer.start(10)  # Adjust timer interval as needed (33 milliseconds for ~30 fps)
 
     def set_fd_model(self, face_detector_name: str):
         self.th.set_fd_model(face_detector_name)
@@ -284,6 +321,7 @@ class MainWindow(QMainWindow):
     def btn_toggle_clicked(self):
         self.remove_image()
         if self.btn_toggle.isChecked():
+            self.timer.stop()
             self.images = []
             self.total_images = 0
             self.btn_toggle.setText("Stop")
