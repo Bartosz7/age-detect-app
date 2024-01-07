@@ -34,3 +34,4 @@ class Config:
 
     # Directory for GUI static elements (must be absolute path from project root)
     STATIC_DIR_PATH = "src/gui/static"
+    WELCOME_IMAGE = "DSCN0597.JPG"  # must be located in STATIC_DIR_PATH

@@ -11,12 +11,13 @@ import torchvision
 from torchvision import transforms
 import torch.nn as nn
 from PIL import Image
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, pyqtSlot, QSize
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, pyqtSlot, QSize, QRectF
 from PyQt6.QtGui import QAction, QImage, QKeySequence, QPixmap, QIcon
 from PyQt6.QtWidgets import (QApplication, QComboBox, QGroupBox,
                              QHBoxLayout, QLabel, QMainWindow, QPushButton,
                              QSizePolicy, QVBoxLayout, QWidget, QFileDialog,
-                             QGraphicsView, QGraphicsScene, QSplitter)
+                             QGraphicsView, QGraphicsScene, QSplitter,
+                             QGraphicsPixmapItem)
 
 from config import Config
 from face_detection import DetectedFace, FaceDetectors
@@ -83,24 +84,47 @@ class MainWindow(QMainWindow):
         options_group_box.setMaximumWidth(300)
 
         # Right Panel
-        # Create a label for the display camera
+        self.image_label = QLabel("Source Filename")
+        self.image_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         self.view = QGraphicsView(self)
         self.view.setMinimumSize(QSize(640, 480))
         self.view.setStyleSheet("border: 2px solid black;background-color: #333333;")
-        # pixmap = QPixmap(os.path.join(Config.STATIC_DIR_PATH, "quote.png"))
         self.scene = QGraphicsScene()
-        # self.scene.addPixmap(pixmap)
+        if Config.WELCOME_IMAGE is not None:
+            image_path = os.path.join(Config.STATIC_DIR_PATH,
+                                      Config.WELCOME_IMAGE)
+            pixmap = QPixmap(image_path)
+            self.scene.addPixmap(pixmap)
         self.view.setScene(self.scene)
+        self.view.fitInView(self.scene.sceneRect(),
+                            Qt.AspectRatioMode.KeepAspectRatio)
 
         # Right layout only for QGraphics
         right_layout = QVBoxLayout()
+        right_layout.addWidget(self.image_label)
+
+        # Nav. buttons
+        buttons_layout = QHBoxLayout()
+        buttons_layout.setContentsMargins(0, 0, 0, 0)
+        buttons_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.left_button = QPushButton("<")
+        # self.left_button.setStyleSheet("background: transparent; border: none; color: white; font-size: 18px;")
+        self.right_button = QPushButton(">")
+        # self.right_button.setStyleSheet("background: transparent; border: none; color: white; font-size: 18px;")
+        buttons_layout.addWidget(self.left_button)
+        buttons_layout.addWidget(self.right_button)
+
+        # Right Panel
         right_layout.addWidget(self.view)
+        right_layout.addLayout(buttons_layout)
 
         # Splitter
         splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.addWidget(options_group_box)
         # splitter.addWidget(QWidget())
-        splitter.addWidget(self.view)
+        right_panel_widget = QWidget()
+        right_panel_widget.setLayout(right_layout)
+        splitter.addWidget(right_panel_widget)
         splitter.setStretchFactor(0, 1)
 
         # Central widget
@@ -203,6 +227,10 @@ class MainWindow(QMainWindow):
             pixmap = QPixmap.fromImage(image)
             self.scene.clear()
             self.scene.addPixmap(pixmap)
+            # Set the scene rectangle to match the image size
+            item = QGraphicsPixmapItem(pixmap)
+            self.scene.addItem(item)
+            self.scene.setSceneRect(QRectF(item.pixmap().rect()))
             self.view.setScene(self.scene)
             self.view.fitInView(self.scene.sceneRect(),
                                 Qt.AspectRatioMode.KeepAspectRatio)
