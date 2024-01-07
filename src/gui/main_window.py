@@ -40,13 +40,13 @@ class MainWindow(QMainWindow):
         self.menu = self.menuBar()
         self.menu_file = self.menu.addMenu("Start")
         # Scenario 3A
-        load_photos_action = QAction("Select Images", self)
-        load_photos_action.triggered.connect(self.openFileDialogAndChooseImages)
-        self.menu_file.addAction(load_photos_action)
+        load_images_action = QAction("Select Images", self)
+        load_images_action.triggered.connect(self.openFileDialogAndChooseImages)
+        self.menu_file.addAction(load_images_action)
         # Scenario 3B
-        load_photos_from_dir_action = QAction("Select Images from Folder", self)
-        # load_photos_from_dir_action.triggered.connect()
-        self.menu_file.addAction(load_photos_from_dir_action)
+        load_images_from_dir_action = QAction("Select Images from Folder", self)
+        # load_images_from_dir_action.triggered.connect()
+        self.menu_file.addAction(load_images_from_dir_action)
         # Scenario 2
         load_video_action = QAction("Select Video", self)
         load_video_action.triggered.connect(self.load_video_file)
@@ -107,12 +107,19 @@ class MainWindow(QMainWindow):
         buttons_layout = QHBoxLayout()
         buttons_layout.setContentsMargins(0, 0, 0, 0)
         buttons_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.left_button = QPushButton("<")
-        # self.left_button.setStyleSheet("background: transparent; border: none; color: white; font-size: 18px;")
-        self.right_button = QPushButton(">")
-        # self.right_button.setStyleSheet("background: transparent; border: none; color: white; font-size: 18px;")
-        buttons_layout.addWidget(self.left_button)
-        buttons_layout.addWidget(self.right_button)
+        self.prev_button = QPushButton("<")
+        # self.prev_button.setStyleSheet("background: transparent; border: none; color: white; font-size: 18px;")
+        self.next_button = QPushButton(">")
+        # self.next_button.setStyleSheet("background: transparent; border: none; color: white; font-size: 18px;")
+        buttons_layout.addWidget(self.prev_button)
+        buttons_layout.addWidget(self.next_button)
+
+        self.prev_button.clicked.connect(self.show_previous)
+        self.next_button.clicked.connect(self.show_next)
+
+        self.images = []
+        self.total_images = len(self.images)
+        self.current_image_index = 0
 
         # Right Panel
         right_layout.addWidget(self.view)
@@ -179,30 +186,51 @@ class MainWindow(QMainWindow):
         file_dialog.setViewMode(QFileDialog.ViewMode.Detail)
 
         if file_dialog.exec():
-            self.selected_files = file_dialog.selectedFiles()
-            logging.debug(self.selected_files)
+            self.images = file_dialog.selectedFiles()
+            self.total_images = len(self.images)
+            logging.debug(self.images)
 
     def open_directory_dialog(self):
         """Opens directory selection window"""
-        return QFileDialog.getExistingDirectory(self, "Select Folder of Photos")
+        return QFileDialog.getExistingDirectory(self, "Select Folder of images")
 
-    def load_folder_photos(self):
+    def load_folder_images(self):
         logging.debug("Action: load photo directory")
         folder_path = self.open_directory_dialog()
         if folder_path:
             print(folder_path)
             # TODO: photo loading, separate logic
-            # Perform operations to load and display photos from the folder
+            # Perform operations to load and display images from the folder
             # Example:
-            # Iterate through photos in the folder and display them in the label
-            # Here, you would use methods to load and display the photos in the label
+            # Iterate through images in the folder and display them in the label
+            # Here, you would use methods to load and display the images in the label
 
-            # For example, assuming photos are loaded into a list of paths:
-            # photos = [list of photo file paths]
+            # For example, assuming images are loaded into a list of paths:
+            # images = [list of photo file paths]
             # # Load the first photo from the folder
-            # if photos:
-            #     pixmap = QPixmap(photos[0])
+            # if images:
+            #     pixmap = QPixmap(images[0])
             #     self.label.setPixmap(pixmap)
+
+    def show_image(self, index):
+        pixmap = QPixmap(self.images[index])
+        self.scene.clear()
+        self.scene.addPixmap(pixmap)
+        self.view.setScene(self.scene)
+        self.view.fitInView(self.scene.sceneRect(),
+                            Qt.AspectRatioMode.KeepAspectRatio)
+        # Update index label
+        self.image_label.setText(f"Image {index + 1} of {self.total_images}")
+
+    def show_previous(self):
+        if self.current_image_index > 0:
+            self.current_image_index -= 1
+            self.show_image(self.current_image_index)
+
+    def show_next(self):
+        if self.current_image_index < len(self.images) - 1:
+            self.current_image_index += 1
+            self.show_image(self.current_image_index)
 
     def load_video_file(self):
         print("load_video_file")
@@ -251,6 +279,7 @@ class MainWindow(QMainWindow):
     @pyqtSlot()
     def start(self):
         logging.debug("Starting live video capture...")
+        self.image_label.setText("Live Video 🔴")
         self.live = True
         self.th.set_fd_model(self.fd_combobox.currentText())
         self.th.set_ad_file(self.ad_combobox.currentText())
