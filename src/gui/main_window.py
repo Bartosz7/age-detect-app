@@ -306,6 +306,8 @@ class MainWindow(QMainWindow):
         pixmap = QPixmap(image_fullpath)
         self.scene.clear()
         self.scene.addPixmap(pixmap)
+        rectF = QRectF(pixmap.rect())
+        self.scene.setSceneRect(rectF)
         self.view.setScene(self.scene)
         self.view.fitInView(self.scene.sceneRect(),
                             Qt.AspectRatioMode.KeepAspectRatio)
