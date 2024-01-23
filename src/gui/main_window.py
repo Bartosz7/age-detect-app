@@ -35,6 +35,10 @@ class MainWindow(QMainWindow):
         # Main menu bar with actions
         self.menu = self.menuBar()
         self.menu_file = self.menu.addMenu("Start")
+        # Scenario 1
+        start_live_action = QAction("Start Live Capture", self)
+        start_live_action.triggered.connect(self.start_live_capture)
+        self.menu_file.addAction(start_live_action)
         # Scenario 3A
         load_images_action = QAction("Select Image(s)", self)
         load_images_action.triggered.connect(self.load_images_from_selection)
@@ -59,18 +63,33 @@ class MainWindow(QMainWindow):
         self.menu_about.addAction(license)
 
         # Left Panel: options layout
+        # create a new QHBoxLayout() with single label
+        self.label_layout = QHBoxLayout()
+        # make label look nicer
+        self.label_desc = QLabel("Start by selecting source from Start menu above")
+        self.label_desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.label_desc.setStyleSheet("font-style: italic; color: #999999;")
+        self.label_desc.setWordWrap(True)
+        self.label_desc.setFixedWidth(280)
+        self.label_layout.addWidget(self.label_desc)
+        self.label_layout.addStretch(1)
+        self.label_layout.setContentsMargins(0, 0, 0, 0)
+        self.spacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.label_layout.addItem(self.spacer)
         self.create_group_face_det()
         self.create_group_age_det()
         options_layout = QVBoxLayout()
+        options_layout.addLayout(self.label_layout)
         options_layout.addWidget(self.group_face_model)
         options_layout.addWidget(self.group_age_model)
 
         buttons_layout = QHBoxLayout()
-        self.btn_toggle = QPushButton("Start")
-        self.btn_toggle.setSizePolicy(QSizePolicy.Policy.Preferred,
+        self.start_btn = QPushButton("Start")
+        self.start_btn.setSizePolicy(QSizePolicy.Policy.Preferred,
                                       QSizePolicy.Policy.Preferred)
-        self.btn_toggle.setCheckable(True)
-        buttons_layout.addWidget(self.btn_toggle)
+        self.start_btn.setHidden(True)
+        # self.start_btn.setCheckable(True)
+        buttons_layout.addWidget(self.start_btn)
 
         options_and_buttons_layout = QVBoxLayout()
         options_and_buttons_layout.addLayout(options_layout)
@@ -112,6 +131,18 @@ class MainWindow(QMainWindow):
         self.buttons_layout.addWidget(self.next_button)
         self.prev_button.clicked.connect(self.show_previous)
         self.next_button.clicked.connect(self.show_next)
+        # hide at first
+        self.prev_button.setHidden(True)
+        self.next_button.setHidden(True)
+
+        # additional button layour for stopping live video
+        self.buttons_layout2 = QHBoxLayout()
+        self.buttons_layout2.setContentsMargins(0, 0, 0, 0)
+        self.buttons_layout2.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.stop_live_btn = QPushButton("Stop Live Capture")
+        self.buttons_layout2.addWidget(self.stop_live_btn)
+        self.stop_live_btn.clicked.connect(self.stop_live_capture)
+        self.stop_live_btn.setHidden(True)
 
         self.images = []
         self.total_images = len(self.images)
@@ -120,6 +151,7 @@ class MainWindow(QMainWindow):
         # Right Panel
         right_layout.addWidget(self.view)
         right_layout.addLayout(self.buttons_layout)
+        right_layout.addLayout(self.buttons_layout2)
 
         # Splitter
         splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -207,7 +239,7 @@ class MainWindow(QMainWindow):
         self.group_age_model.setLayout(model_layout)
 
     def connect_all(self):
-        self.btn_toggle.clicked.connect(self.btn_toggle_clicked)
+        self.start_btn.clicked.connect(self.start_btn_clicked)
         self.fd_combobox.currentTextChanged.connect(self.set_fd_model)
         self.ad_combobox.currentTextChanged.connect(self.set_ad_model)
 
@@ -320,20 +352,44 @@ class MainWindow(QMainWindow):
     def set_ad_model(self, text):
         self.th.set_ad_file(text)
 
-    def btn_toggle_clicked(self):
+    def start_live_capture(self):
+        """Sets the proper UI and starts live video capture from webcam"""
         self.remove_image()
-        if self.btn_toggle.isChecked():
-            self.timer.stop()
-            self.images = []
-            self.total_images = 0
-            self.btn_toggle.setText("Stop")
-            self.prev_button.setHidden(True)
-            self.next_button.setHidden(True)
-            self.start()
-        else:
-            self.btn_toggle.setText("Start")
-            self.kill_thread()
-            self.reset_graphics_display()
+        self.timer.stop()
+        self.images = []
+        self.total_images = 0
+        self.start_btn.setHidden(True)
+        self.prev_button.setHidden(True)
+        self.next_button.setHidden(True)
+        self.stop_live_btn.setHidden(False)
+        self.image_label.setText("Live Video 🔴")
+        self.label_desc.setText("You can switch the models and the changes will be reflected immediately on the video.\nClick on 'Stop Live Capture' button to stop this mode.")
+        self.live = True
+        self.start_thread()
+
+    def stop_live_capture(self):
+        "Stops live capture and resets UI"
+        self.kill_thread()
+        self.reset_graphics_display()
+        self.stop_live_btn.setHidden(True)
+        self.image_label.setText("Source")
+        self.label_desc.setText("Start by selecting source from Start menu above")
+
+    def start_btn_clicked(self):
+        pass
+        # self.remove_image()
+        # if self.start_btn.isChecked():
+        #     self.timer.stop()
+        #     self.images = []
+        #     self.total_images = 0
+        #     self.start_btn.setText("Stop")
+        #     self.prev_button.setHidden(True)
+        #     self.next_button.setHidden(True)
+        #     self.start_thread()
+        # else:
+        #     self.start_btn.setText("Start")
+        #     self.kill_thread()
+        #     self.reset_graphics_display()
 
     @pyqtSlot(QImage)
     def set_image(self, image):
@@ -363,10 +419,8 @@ class MainWindow(QMainWindow):
         time.sleep(2)  # Give time for the thread to finish
 
     @pyqtSlot()
-    def start(self):
+    def start_thread(self):
         logging.debug("Starting live video capture...")
-        self.image_label.setText("Live Video 🔴")
-        self.live = True
         self.th.set_fd_model(self.fd_combobox.currentText())
         self.th.set_ad_file(self.ad_combobox.currentText())
         self.th.start()
