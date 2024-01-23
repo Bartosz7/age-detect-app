@@ -17,6 +17,7 @@ class ImageProcessingThread(QThread):
     This is a thread that processes images, saves them and updates MainWindow
     """
     imagesProcessed = pyqtSignal(str)  # path to dir with processed images
+    progress = pyqtSignal(int)  # progress bar value
 
     def __init__(self, images_paths_list):
         super().__init__()
@@ -32,9 +33,9 @@ class ImageProcessingThread(QThread):
         output_dir = os.path.join("output", timestamp)
         os.makedirs(output_dir, exist_ok=True)
 
-        for image_path in self.images_paths_list:
+        total_images = len(self.images_paths_list)
+        for i, image_path in enumerate(self.images_paths_list):
             image = cv2.imread(image_path)
-            #image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             detected_faces = self.fd_detector.detect_faces(image)
 
             for face in detected_faces:
@@ -44,6 +45,9 @@ class ImageProcessingThread(QThread):
 
             output_path = os.path.join(output_dir, os.path.basename(image_path))
             cv2.imwrite(output_path, image)
+
+            progress = int((i + 1) / total_images * 100)
+            self.progress.emit(progress)
 
         self.imagesProcessed.emit(output_dir)  # Emit the signal with the saved_images_dir_path
 

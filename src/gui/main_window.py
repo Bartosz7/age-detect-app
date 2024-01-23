@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import (QApplication, QComboBox, QGroupBox,
                              QHBoxLayout, QLabel, QMainWindow, QPushButton,
                              QSizePolicy, QVBoxLayout, QWidget, QFileDialog,
                              QGraphicsView, QGraphicsScene, QSplitter,
-                             QGraphicsPixmapItem, QSpacerItem)
+                             QGraphicsPixmapItem, QSpacerItem, QProgressBar)
 
 from config import Config
 from face_detection import DetectedFace, FaceDetectors
@@ -123,12 +123,17 @@ class MainWindow(QMainWindow):
         self.start_btn.setSizePolicy(QSizePolicy.Policy.Preferred,
                                       QSizePolicy.Policy.Preferred)
         self.start_btn.setHidden(True)
-        # self.start_btn.setCheckable(True)
         buttons_layout.addWidget(self.start_btn)
+        # add progress bar
+        pbar_layout = QHBoxLayout()
+        self.pbar = QProgressBar(self)
+        self.pbar.setHidden(True)
+        pbar_layout.addWidget(self.pbar)
 
         options_and_buttons_layout = QVBoxLayout()
         options_and_buttons_layout.addLayout(options_layout)
         options_and_buttons_layout.addLayout(buttons_layout)
+        options_and_buttons_layout.addLayout(pbar_layout)
         spacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         options_and_buttons_layout.addItem(spacer)
 
@@ -211,6 +216,9 @@ class MainWindow(QMainWindow):
         # 2nd thread for image processing
         self.image_thread = ImageProcessingThread(self.images)
         self.image_thread.imagesProcessed.connect(self.load_images_to_display)
+        self.image_thread.progress.connect(self.pbar.setValue)
+        self.image_thread.finished.connect(self.pbar.reset)
+        self.image_thread.finished.connect(self.pbar.hide)
         # Connections
         self.connect_all()
 
@@ -298,9 +306,6 @@ class MainWindow(QMainWindow):
 
     def load_images_from_selection(self):
         self.stop_live_capture()
-        self.start_btn.setHidden(False)
-        self.start_btn.setEnabled(True)
-        self.label_desc.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
         self.timer.stop()
         file_dialog = QFileDialog()
         file_dialog.setNameFilter("Images (*.png *.jpg *.jpeg)")
@@ -311,15 +316,22 @@ class MainWindow(QMainWindow):
             self.images = file_dialog.selectedFiles()
             self.current_image_index = 0
             self.total_images = len(self.images)
-            if self.total_images > 1:
-                self.prev_button.setHidden(False)
-                self.next_button.setHidden(False)
-                self.prev_button.setEnabled(False)
-                self.next_button.setEnabled(True)
-            if self.total_images == 1:
-                self.prev_button.setHidden(True)
-                self.next_button.setHidden(True)
-            self.show_image(0)
+            if self.total_images > 0:
+                if self.total_images > 1:
+                    self.label_desc.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
+                    self.prev_button.setHidden(False)
+                    self.next_button.setHidden(False)
+                    self.prev_button.setEnabled(False)
+                    self.next_button.setEnabled(True)
+                    self.start_btn.setHidden(False)
+                    self.start_btn.setEnabled(True)
+                if self.total_images == 1:
+                    self.label_desc.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
+                    self.prev_button.setHidden(True)
+                    self.next_button.setHidden(True)
+                    self.start_btn.setHidden(False)
+                    self.start_btn.setEnabled(True)
+                self.show_image(0)
 
     def open_directory_dialog(self):
         """Opens directory selection window"""
@@ -334,14 +346,25 @@ class MainWindow(QMainWindow):
             image_files = [os.path.join(folder_path, file) for file in os.listdir(folder_path)
                            if os.path.isfile(os.path.join(folder_path, file)) and
                            os.path.splitext(file)[1].lower() in image_extensions]
-            self.current_image_index = 0
-            self.images = image_files
-            self.total_images = len(self.images)
-            self.prev_button.setHidden(False)
-            self.next_button.setHidden(False)
-            self.prev_button.setEnabled(False)
-            self.next_button.setEnabled(True)
-            self.show_image(0)
+            if len(image_files) > 0:
+                self.current_image_index = 0
+                self.images = image_files
+                self.total_images = len(self.images)
+                if self.total_images > 1:
+                    self.label_desc.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
+                    self.prev_button.setHidden(False)
+                    self.next_button.setHidden(False)
+                    self.prev_button.setEnabled(False)
+                    self.next_button.setEnabled(True)
+                    self.start_btn.setHidden(False)
+                    self.start_btn.setEnabled(True)
+                if self.total_images == 1:
+                    self.label_desc.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
+                    self.prev_button.setHidden(True)
+                    self.next_button.setHidden(True)
+                    self.start_btn.setHidden(False)
+                    self.start_btn.setEnabled(True)
+                self.show_image(0)
 
     def reset_graphics_display(self):
         self.scene = QGraphicsScene()
@@ -447,6 +470,7 @@ class MainWindow(QMainWindow):
         self.image_thread.set_images_paths_list(self.images)
         self.image_thread.set_fd_model(self.fd_combobox.currentText())
         self.image_thread.set_ad_file(self.ad_combobox.currentText())
+        self.pbar.setHidden(False)
         self.image_thread.start()
         self.start_btn.setEnabled(False)
         # self.remove_image()
