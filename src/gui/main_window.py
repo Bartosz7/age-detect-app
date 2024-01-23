@@ -244,6 +244,10 @@ class MainWindow(QMainWindow):
         self.ad_combobox.currentTextChanged.connect(self.set_ad_model)
 
     def load_images_from_selection(self):
+        self.stop_live_capture()
+        self.start_btn.setHidden(False)
+        self.start_btn.setEnabled(True)
+        self.label_desc.setText("Select the desired models below and click on 'Start' button to start processing the images")
         self.timer.stop()
         file_dialog = QFileDialog()
         file_dialog.setNameFilter("Images (*.png *.jpg *.jpeg)")
@@ -352,6 +356,14 @@ class MainWindow(QMainWindow):
     def set_ad_model(self, text):
         self.th.set_ad_file(text)
 
+    def start_img_scenario(self):
+        """Loads images, sets up the UI before processing"""
+        pass
+
+    def start_img_processing(self):
+        """Starts loaded images processing"""
+        pass
+
     def start_live_capture(self):
         """Sets the proper UI and starts live video capture from webcam"""
         self.remove_image()
@@ -413,7 +425,8 @@ class MainWindow(QMainWindow):
     def kill_thread(self):
         logging.debug("Finishing live recording...")
         cv2.destroyAllWindows()  # TODO: check if needed
-        self.th.camera.release()
+        if type(self.th.camera) == cv2.VideoCapture:
+            self.th.camera.release()
         self.live = False
         self.th.terminate()
         time.sleep(2)  # Give time for the thread to finish
