@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import (QApplication, QComboBox, QGroupBox,
                              QHBoxLayout, QLabel, QMainWindow, QPushButton,
                              QSizePolicy, QVBoxLayout, QWidget, QFileDialog,
                              QGraphicsView, QGraphicsScene, QSplitter,
-                             QGraphicsPixmapItem)
+                             QGraphicsPixmapItem, QSpacerItem)
 
 from config import Config
 from face_detection import DetectedFace, FaceDetectors
@@ -68,13 +68,15 @@ class MainWindow(QMainWindow):
         buttons_layout = QHBoxLayout()
         self.btn_toggle = QPushButton("Start")
         self.btn_toggle.setSizePolicy(QSizePolicy.Policy.Preferred,
-                                      QSizePolicy.Policy.Expanding)
+                                      QSizePolicy.Policy.Preferred)
         self.btn_toggle.setCheckable(True)
         buttons_layout.addWidget(self.btn_toggle)
 
         options_and_buttons_layout = QVBoxLayout()
         options_and_buttons_layout.addLayout(options_layout)
         options_and_buttons_layout.addLayout(buttons_layout)
+        spacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        options_and_buttons_layout.addItem(spacer)
 
         options_group_box = QGroupBox("Settings")
         options_group_box.setLayout(options_and_buttons_layout)
