@@ -7,7 +7,7 @@ from functools import reduce
 import cv2
 from PyQt6.QtCore import (Qt, QThread, pyqtSignal, pyqtSlot,
                           QSize, QRectF, QTimer)
-from PyQt6.QtGui import QAction, QImage, QPixmap, QIcon, QKeyEvent
+from PyQt6.QtGui import QAction, QImage, QPixmap, QIcon, QKeyEvent, QPainter
 from PyQt6.QtWidgets import (QApplication, QComboBox, QGroupBox,
                              QHBoxLayout, QLabel, QMainWindow, QPushButton,
                              QSizePolicy, QVBoxLayout, QWidget, QFileDialog,
@@ -16,8 +16,43 @@ from PyQt6.QtWidgets import (QApplication, QComboBox, QGroupBox,
 
 from config import Config
 from face_detection import DetectedFace, FaceDetectors
-from gui.processing import ProcessingThread
+from gui.processing import ProcessingThread, ImageProcessingThread
 from gui.about import AboutDialog
+
+
+class GraphicsViewWithZoom(QGraphicsView):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setRenderHint(QPainter.RenderHint.Antialiasing)
+        self.initialScaleFactor = None
+
+    def wheelEvent(self, event):
+        zoomInFactor = 1.25
+        zoomOutFactor = 1 / zoomInFactor
+
+        # Save the scene pos
+        oldPos = self.mapToScene(event.position().toPoint())
+
+        # Save the initial scale factor
+        if self.initialScaleFactor is None:
+            self.initialScaleFactor = self.transform().m11()
+
+        # Zoom
+        if event.angleDelta().y() > 0:
+            zoomFactor = zoomInFactor
+        else:
+            if self.transform().m11() > self.initialScaleFactor:
+                zoomFactor = zoomOutFactor
+            else:
+                return
+        self.scale(zoomFactor, zoomFactor)
+
+        # Get the new position
+        newPos = self.mapToScene(event.position().toPoint())
+
+        # Move scene to old position
+        delta = newPos - oldPos
+        self.translate(delta.x(), delta.y())
 
 
 class MainWindow(QMainWindow):
@@ -104,7 +139,7 @@ class MainWindow(QMainWindow):
         # Right Panel: Graphics and navigation
         self.image_label = QLabel("Source Filename")
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-        self.view = QGraphicsView(self)
+        self.view = GraphicsViewWithZoom(self)
         self.view.setMinimumSize(QSize(640, 480))
         self.view.setStyleSheet("border: 2px solid black;background-color: #333333;")
         self.scene = QGraphicsScene()
@@ -173,12 +208,30 @@ class MainWindow(QMainWindow):
         self.th = ProcessingThread(self)
         self.th.finished.connect(self.remove_image)
         self.th.updateFrame.connect(self.set_image)
+        # 2nd thread for image processing
+        self.image_thread = ImageProcessingThread(self.images)
+        self.image_thread.imagesProcessed.connect(self.load_images_to_display)
         # Connections
         self.connect_all()
 
         # Video Player timer 
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_video)
+
+    def load_images_to_display(self, image_dir_path: str):
+        print(image_dir_path)
+        image_extensions = ['.jpg', '.jpeg', '.png']
+        image_files = [os.path.join(image_dir_path, file) for file in os.listdir(image_dir_path)
+                       if os.path.isfile(os.path.join(image_dir_path, file)) and
+                       os.path.splitext(file)[1].lower() in image_extensions]
+        self.current_image_index = 0
+        self.images = image_files
+        self.total_images = len(self.images)
+        self.prev_button.setHidden(False)
+        self.next_button.setHidden(False)
+        self.prev_button.setEnabled(False)
+        self.next_button.setEnabled(True)
+        self.show_image(0)
 
     def reset_images(self):
         self.images = []
@@ -247,7 +300,7 @@ class MainWindow(QMainWindow):
         self.stop_live_capture()
         self.start_btn.setHidden(False)
         self.start_btn.setEnabled(True)
-        self.label_desc.setText("Select the desired models below and click on 'Start' button to start processing the images")
+        self.label_desc.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
         self.timer.stop()
         file_dialog = QFileDialog()
         file_dialog.setNameFilter("Images (*.png *.jpg *.jpeg)")
@@ -390,7 +443,12 @@ class MainWindow(QMainWindow):
         self.label_desc.setText("Start by selecting source from Start menu above")
 
     def start_btn_clicked(self):
-        pass
+        """Starts processing images"""
+        self.image_thread.set_images_paths_list(self.images)
+        self.image_thread.set_fd_model(self.fd_combobox.currentText())
+        self.image_thread.set_ad_file(self.ad_combobox.currentText())
+        self.image_thread.start()
+        self.start_btn.setEnabled(False)
         # self.remove_image()
         # if self.start_btn.isChecked():
         #     self.timer.stop()
