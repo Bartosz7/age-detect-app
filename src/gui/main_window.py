@@ -28,6 +28,7 @@ It is based on 3 different modes (scenarios):
 1. Live Capture Mode - live video capture from webcam
 2. Video Mode - video file processing
 3. Picture Mode - image(s) processing
+Also referred to as mode 1, mode 2, mode 3 respectively.
 """
 
 
@@ -76,48 +77,8 @@ class MainWindow(QMainWindow):
         # Menu Bar
         self.create_menu_bar()
 
-        # Left Panel: options layout
-        # Label for tutorial
-        self.label_layout = QHBoxLayout()
-        self.label_desc = QLabel("Start by selecting source from Start menu above")
-        self.label_desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.label_desc.setStyleSheet("font-size: 14px; font-style: italic; color: #999999;")
-        self.label_desc.setWordWrap(True)
-        self.label_desc.setFixedWidth(280)
-        self.label_layout.addWidget(self.label_desc)
-        self.label_layout.addStretch(1)
-        self.label_layout.setContentsMargins(0, 0, 0, 0)
-        self.spacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-        self.label_layout.addItem(self.spacer)
-        self.create_group_face_det()
-        self.create_group_age_det()
-        options_layout = QVBoxLayout()
-        options_layout.addLayout(self.label_layout)
-        options_layout.addWidget(self.group_face_model)
-        options_layout.addWidget(self.group_age_model)
-
-        buttons_layout = QHBoxLayout()
-        self.start_btn = QPushButton("Start")
-        self.start_btn.setSizePolicy(QSizePolicy.Policy.Preferred,
-                                      QSizePolicy.Policy.Preferred)
-        self.start_btn.setHidden(True)
-        buttons_layout.addWidget(self.start_btn)
-        # add progress bar
-        pbar_layout = QHBoxLayout()
-        self.pbar = QProgressBar(self)
-        self.pbar.setHidden(True)
-        pbar_layout.addWidget(self.pbar)
-
-        options_and_buttons_layout = QVBoxLayout()
-        options_and_buttons_layout.addLayout(options_layout)
-        options_and_buttons_layout.addLayout(buttons_layout)
-        options_and_buttons_layout.addLayout(pbar_layout)
-        spacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-        options_and_buttons_layout.addItem(spacer)
-
-        options_group_box = QGroupBox("Settings")
-        options_group_box.setLayout(options_and_buttons_layout)
-        options_group_box.setMaximumWidth(300)
+        # Left Panel: Settings
+        self.create_left_panel()
 
         # Right Panel: Graphics and navigation
         self.image_label = QLabel("Source Filename")
@@ -182,8 +143,7 @@ class MainWindow(QMainWindow):
 
         # Splitter
         splitter = QSplitter(Qt.Orientation.Horizontal)
-        splitter.addWidget(options_group_box)
-        # splitter.addWidget(QWidget())
+        splitter.addWidget(self.left_panel)
         self.right_panel_widget = QWidget()
         self.right_panel_widget.setLayout(right_layout)
         splitter.addWidget(self.right_panel_widget)
@@ -201,6 +161,52 @@ class MainWindow(QMainWindow):
 
         # Connections
         self.connect_all()
+
+    def create_left_panel(self):
+        """Creates left panel with settings including model selection
+        for all modes, start button for 3 and progress bar for mode 2,3"""
+        # Label for tutorial
+        self.label_layout = QHBoxLayout()
+        self.hint_label = QLabel("Start by selecting source from Start menu above")
+        self.hint_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.hint_label.setStyleSheet("font-size: 14px; font-style: italic; color: #999999;")
+        self.hint_label.setWordWrap(True)
+        self.hint_label.setFixedWidth(280)
+        self.label_layout.addWidget(self.hint_label)
+        self.label_layout.addStretch(1)
+        self.label_layout.setContentsMargins(0, 0, 0, 0)
+        self.spacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.label_layout.addItem(self.spacer)
+        self.create_group_face_det()
+        self.create_group_age_det()
+        options_layout = QVBoxLayout()
+        options_layout.addLayout(self.label_layout)
+        options_layout.addWidget(self.group_face_model)
+        options_layout.addWidget(self.group_age_model)
+
+        buttons_layout = QHBoxLayout()
+        self.start_btn = QPushButton("Start")
+        self.start_btn.setSizePolicy(QSizePolicy.Policy.Preferred,
+                                      QSizePolicy.Policy.Preferred)
+        self.start_btn.setHidden(True)
+        buttons_layout.addWidget(self.start_btn)
+        # add progress bar
+        pbar_layout = QHBoxLayout()
+        self.pbar = QProgressBar(self)
+        self.pbar.setHidden(True)
+        pbar_layout.addWidget(self.pbar)
+
+        options_and_buttons_layout = QVBoxLayout()
+        options_and_buttons_layout.addLayout(options_layout)
+        options_and_buttons_layout.addLayout(buttons_layout)
+        options_and_buttons_layout.addLayout(pbar_layout)
+        spacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        options_and_buttons_layout.addItem(spacer)
+
+        left_panel = QGroupBox("Settings")
+        left_panel.setLayout(options_and_buttons_layout)
+        left_panel.setMaximumWidth(300)
+        self.left_panel = left_panel
 
     def create_processing_threads(self):
         """Creates threads for image processing"""
@@ -349,7 +355,7 @@ class MainWindow(QMainWindow):
             self.total_images = len(self.images)
             if self.total_images > 0:
                 if self.total_images > 1:
-                    self.label_desc.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
+                    self.hint_label.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
                     self.prev_button.setHidden(False)
                     self.next_button.setHidden(False)
                     self.prev_button.setEnabled(False)
@@ -357,7 +363,7 @@ class MainWindow(QMainWindow):
                     self.start_btn.setHidden(False)
                     self.start_btn.setEnabled(True)
                 if self.total_images == 1:
-                    self.label_desc.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
+                    self.hint_label.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
                     self.prev_button.setHidden(True)
                     self.next_button.setHidden(True)
                     self.start_btn.setHidden(False)
@@ -381,7 +387,7 @@ class MainWindow(QMainWindow):
                 self.images = image_files
                 self.total_images = len(self.images)
                 if self.total_images > 1:
-                    self.label_desc.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
+                    self.hint_label.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
                     self.prev_button.setHidden(False)
                     self.next_button.setHidden(False)
                     self.prev_button.setEnabled(False)
@@ -389,7 +395,7 @@ class MainWindow(QMainWindow):
                     self.start_btn.setHidden(False)
                     self.start_btn.setEnabled(True)
                 if self.total_images == 1:
-                    self.label_desc.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
+                    self.hint_label.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
                     self.prev_button.setHidden(True)
                     self.next_button.setHidden(True)
                     self.start_btn.setHidden(False)
@@ -475,7 +481,7 @@ class MainWindow(QMainWindow):
         self.next_button.setHidden(True)
         self.stop_live_btn.setHidden(False)
         self.image_label.setText("Live Video 🔴")
-        self.label_desc.setText("You can switch the models and the changes will be reflected immediately on the video.\nClick on 'Stop Live Capture' button to stop this mode.")
+        self.hint_label.setText("You can switch the models and the changes will be reflected immediately on the video.\nClick on 'Stop Live Capture' button to stop this mode.")
         self.live = True
         self.start_thread()
 
@@ -485,7 +491,7 @@ class MainWindow(QMainWindow):
         self.reset_graphics_display()
         self.stop_live_btn.setHidden(True)
         self.image_label.setText("Source")
-        self.label_desc.setText("Start by selecting source from Start menu above")
+        self.hint_label.setText("Start by selecting source from Start menu above")
 
     def start_btn_clicked(self):
         """Starts processing images"""
