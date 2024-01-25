@@ -199,8 +199,8 @@ class MainWindow(QMainWindow):
         # Constant Layout
         options_layout = QVBoxLayout()
         options_layout.addLayout(self.label_layout)
-        options_layout.addWidget(self.group_face_model)
-        options_layout.addWidget(self.group_age_model)
+        options_layout.addWidget(self.face_model_group)
+        options_layout.addWidget(self.age_model_group)
 
         # Additional layout for temp buttons
         buttons_layout = QHBoxLayout()
@@ -299,8 +299,8 @@ class MainWindow(QMainWindow):
 
     def create_group_face_det(self):
         # Face detection Model Group
-        self.group_face_model = QGroupBox("Face detection model")
-        self.group_face_model.setSizePolicy(QSizePolicy.Policy.Preferred,
+        self.face_model_group = QGroupBox("Face detection model")
+        self.face_model_group.setSizePolicy(QSizePolicy.Policy.Preferred,
                                             QSizePolicy.Policy.Expanding)
         model_layout = QHBoxLayout()
         self.fd_combobox = QComboBox()
@@ -311,12 +311,12 @@ class MainWindow(QMainWindow):
         # Face detection model layout
         model_layout.addWidget(QLabel("Model:"), 10)
         model_layout.addWidget(self.fd_combobox, 90)
-        self.group_face_model.setLayout(model_layout)
+        self.face_model_group.setLayout(model_layout)
 
     def create_group_age_det(self):
         # Age detection Model Group
-        self.group_age_model = QGroupBox("Age detection model")
-        self.group_age_model.setSizePolicy(QSizePolicy.Policy.Preferred,
+        self.age_model_group = QGroupBox("Age detection model")
+        self.age_model_group.setSizePolicy(QSizePolicy.Policy.Preferred,
                                            QSizePolicy.Policy.Expanding)
         model_layout = QHBoxLayout()
         self.ad_combobox = QComboBox()
@@ -327,7 +327,7 @@ class MainWindow(QMainWindow):
         # Age detection model layout
         model_layout.addWidget(QLabel("Model:"), 10)
         model_layout.addWidget(self.ad_combobox, 90)
-        self.group_age_model.setLayout(model_layout)
+        self.age_model_group.setLayout(model_layout)
 
     def load_video(self, output_dir):
         print(output_dir)
