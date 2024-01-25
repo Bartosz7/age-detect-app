@@ -4,7 +4,41 @@ An ML-based age detection app created for the Introduction to ML course at Warsa
 ### Resources
 - [Google Drive](https://drive.google.com/drive/folders/1--eqhLUZsyxi9vrgreIS-B9Zp0haDMjy)
 
-## Environment
+### Configuration and Usage
+##### Step 0: Prerequisites
+Make sure you have the following installed on your system:
+- `Python 3.11+`
+- `pip` (Python package installer)
+##### Step 1: Clone the repository
+`git clone <repo url>`
+`cd your_repository`
+##### Step 2: Create a Virtual Environment
+Navigate to the project directory and create a virtual environment:
+`python -m venv <env_name>`
+Note: On some systems, you might need to use python3 instead of python
+##### Step 3: Activate the Virtual Environment
+**For Windows:**
+`<env_name>\Scripts\activate`
+**For macOS and Linux:**
+`source venv/bin/activate`
+Your command prompt or terminal should now show the virtual environment name.
+##### Step 4: Install Dependencies
+Install the required dependencies listed in the requirements.txt file using pip:
+`pip install -r requirements.txt`
+##### Step 5: Run the Application
+Ensure you are still in the activated virtual environment, and execute
+the main script to runt the Python application:
+`python src/main.py`
+##### [OPTIONAL] Step 6 : Deactivate the Virtual Environment
+When you are done using the application, deactivate the virtual environment:
+`deactivate`
+
+### Media Sources
+| Resource Name | Reference                                                                                                                          |
+|---------------|------------------------------------------------------------------------------------------------------------------------------------|
+| `age_group.png` | created by Freepik - Flaticon, see: [https://www.flaticon.com/free-icons/age-group](https://www.flaticon.com/free-icons/age-group) |
+
+## Development Environment
 ### Initial setup
 You will need to have at least Python 3.11 and [Docker](https://www.docker.com/) installed.
 
@@ -45,8 +79,3 @@ with data organization. All the data should be stored on the Google Drive (if it
 or localy on the developer's machine.
 
 All the code should be stored in `src` folder in appropriate subfolder.
-
-### Media Sources
-| Resource Name | Reference                                                                                                                          |
-|---------------|------------------------------------------------------------------------------------------------------------------------------------|
-| age_group.png | created by Freepik - Flaticon, see: [https://www.flaticon.com/free-icons/age-group](https://www.flaticon.com/free-icons/age-group) |
