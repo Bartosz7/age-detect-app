@@ -383,20 +383,10 @@ class MainWindow(QMainWindow):
                 self.current_image_index = 0
                 self.images = image_files
                 self.total_images = len(self.images)
-                if self.total_images > 1:
-                    self.hint_label.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
-                    self.prev_button.setHidden(False)
-                    self.next_button.setHidden(False)
-                    self.prev_button.setEnabled(False)
-                    self.next_button.setEnabled(True)
-                    self.start_btn.setHidden(False)
-                    self.start_btn.setEnabled(True)
-                if self.total_images == 1:
-                    self.hint_label.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
-                    self.prev_button.setHidden(True)
-                    self.next_button.setHidden(True)
-                    self.start_btn.setHidden(False)
-                    self.start_btn.setEnabled(True)
+                self.hint_label.setText("""The images were loaded. You can preview them by using '<' and '>' buttons.
+                                        Select the desired models below and click on 'Start' button to start processing the images""")
+                self.start_btn.setHidden(False)
+                self.start_btn.setEnabled(True)
                 self.show_image(0)
 
     def reset_graphics_display(self):
