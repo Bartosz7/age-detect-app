@@ -37,7 +37,9 @@ HINTS = {
     "live": "You can switch the models and the changes will be reflected immediately on the video.\nClick on 'Stop Live Capture' button to stop this mode.",
     "video": "Select the desired models below and click on 'Start' button to start processing the video.",
     "images": "The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images.",
-    "no_images": "No images were selected/loaded. Start by selecting source from Start menu above"
+    "no_images": "No images were selected/loaded. Start by selecting source from Start menu above",
+    "images_after": "The images were processed. You can view them in the right panel. To start a new processing, select source from Start menu above.",
+    "images_loading": "Loading images and predicting age. Please wait..."
 }
 
 
@@ -347,7 +349,7 @@ class MainWindow(QMainWindow):
         self.media_player.play()
 
     def load_images_to_display(self, image_dir_path: str):
-        print(image_dir_path)
+        self.hint_label.setText(HINTS.get("images_after"))
         image_extensions = ['.jpg', '.jpeg', '.png']
         image_files = [os.path.join(image_dir_path, file) for file in os.listdir(image_dir_path)
                        if os.path.isfile(os.path.join(image_dir_path, file)) and
@@ -404,6 +406,7 @@ class MainWindow(QMainWindow):
 
     def load_images_from_folder(self):
         logging.debug("Action: load photo directory")
+        self.stop_live_capture()
         folder_path = self.open_directory_dialog()
         if folder_path:
             image_extensions = ['.jpg', '.jpeg', '.png']
@@ -414,7 +417,7 @@ class MainWindow(QMainWindow):
                 self.current_image_index = 0
                 self.images = image_files
                 self.total_images = len(self.images)
-                self.hint_label.setText(HINTS.get("live"))
+                self.hint_label.setText(HINTS.get("images"))
                 self.prev_button.setHidden(False)
                 self.next_button.setHidden(False)
                 self.start_button.setHidden(False)
@@ -525,6 +528,7 @@ class MainWindow(QMainWindow):
         self.image_thread.set_fd_model(self.fd_combobox.currentText())
         self.image_thread.set_ad_file(self.ad_combobox.currentText())
         self.pbar.setHidden(False)
+        self.hint_label.setText(HINTS.get("images_loading"))
         self.image_thread.start()
         self.fd_combobox.setEnabled(False)
         self.ad_combobox.setEnabled(False)
