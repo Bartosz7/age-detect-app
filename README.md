@@ -45,3 +45,8 @@ with data organization. All the data should be stored on the Google Drive (if it
 or localy on the developer's machine.
 
 All the code should be stored in `src` folder in appropriate subfolder.
+
+### Media Sources
+| Resource Name | Reference                                                                                                                          |
+|---------------|------------------------------------------------------------------------------------------------------------------------------------|
+| age_group.png | created by Freepik - Flaticon, see: [https://www.flaticon.com/free-icons/age-group](https://www.flaticon.com/free-icons/age-group) |
