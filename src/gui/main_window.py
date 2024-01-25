@@ -343,6 +343,11 @@ class MainWindow(QMainWindow):
         model_layout.addWidget(self.ad_combobox, 90)
         self.age_model_group.setLayout(model_layout)
 
+    def resizeEvent(self, event):
+        """Rescales the image if the window is resized"""
+        super().resizeEvent(event)
+        self.show_image(self.current_image_index)
+
     def load_video(self, output_dir):
         print(output_dir)
         self.media_player = QMediaPlayer()
