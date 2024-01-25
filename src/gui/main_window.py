@@ -21,6 +21,15 @@ from face_detection import DetectedFace, FaceDetectors
 from gui.processing import ProcessingThread, ImageProcessingThread, VideoProcessingThread
 from gui.about import AboutDialog
 
+"""
+This file contains the core elements of the PyQt6 GUI application
+for face detection and age prediction.
+It is based on 3 different modes (scenarios):
+1. Live Capture Mode - live video capture from webcam
+2. Video Mode - video file processing
+3. Picture Mode - image(s) processing
+"""
+
 
 class GraphicsViewWithZoom(QGraphicsView):
     """Updated QGraphicsView with zooming capabilities"""
@@ -62,7 +71,7 @@ class MainWindow(QMainWindow):
         self.setGeometry(0, 0, 800, 500)
         # https://www.flaticon.com/free-icons/age-group
         # Age group icons created by Freepik - Flaticon
-        self.setWindowIcon(QIcon(os.path.join(Config.STATIC_DIR_PATH, "age-group.png")))
+        self.setWindowIcon(QIcon(os.path.join(Config.STATIC_DIR_PATH, "age_group.png")))
 
         # Menu Bar
         self.create_menu_bar()
