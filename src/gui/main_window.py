@@ -79,11 +79,40 @@ class MainWindow(QMainWindow):
 
         # Left Panel: Settings
         self.create_left_panel()
+        self.create_right_panel()
 
-        # Right Panel: Graphics and navigation
+        # Splitter
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        splitter.addWidget(self.left_panel_widget)
+        splitter.addWidget(self.right_panel_widget)
+        splitter.setStretchFactor(0, 1)
+
+        # Central widget
+        main_layout = QHBoxLayout()
+        main_layout.addWidget(splitter)
+        central_widget = QWidget(self)
+        central_widget.setLayout(main_layout)
+        self.setCentralWidget(central_widget)
+
+        # Processing threads
+        self.create_processing_threads()
+
+        # Connections
+        self.connect_all()
+
+    def create_whole_window(self):
+        """Combines left and right panels into one window"""
+        pass
+
+    def create_right_panel(self):
+        """Creates right panel with graphics, and utility buttons"""
+
+        # Source label
         self.source_label = QLabel()
         self.source_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         self.source_label.setHidden(True)
+
+        # Graphics View
         self.view = GraphicsViewWithZoom(self)
         self.view.setMinimumSize(QSize(640, 480))
         self.view.setStyleSheet("border: 2px solid black;background-color: #333333;")
@@ -101,15 +130,17 @@ class MainWindow(QMainWindow):
         right_layout = QVBoxLayout()
         right_layout.addWidget(self.source_label)
 
-        # Nav. buttons
+        # Gallery Navigation buttons layout
         self.buttons_layout = QHBoxLayout()
         self.buttons_layout.setContentsMargins(0, 0, 0, 0)
         self.buttons_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.prev_button = QPushButton()
         self.next_button = QPushButton()
         # https://www.flaticon.com/free-icon/arrow-left_748099?term=arrow%20left&page=1&position=1&page=1&position=1&related_id=748099&origin=search
-        prev_icon = QIcon(os.path.join(Config.STATIC_DIR_PATH, "arrow_left.png"))
-        next_icon = QIcon(os.path.join(Config.STATIC_DIR_PATH, "arrow_right.png"))
+        prev_icon = QIcon(os.path.join(Config.STATIC_DIR_PATH,
+                                       "arrow_left.png"))
+        next_icon = QIcon(os.path.join(Config.STATIC_DIR_PATH,
+                                       "arrow_right.png"))
         self.prev_button.setIcon(prev_icon)
         self.next_button.setIcon(next_icon)
         self.buttons_layout.addWidget(self.prev_button)
@@ -119,7 +150,7 @@ class MainWindow(QMainWindow):
         self.prev_button.setHidden(True)
         self.next_button.setHidden(True)
 
-        # additional button layout for stopping live video
+        # Button layout for stopping live capture
         self.buttons_layout2 = QHBoxLayout()
         self.buttons_layout2.setContentsMargins(0, 0, 0, 0)
         self.buttons_layout2.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -137,35 +168,19 @@ class MainWindow(QMainWindow):
         right_layout.addLayout(self.buttons_layout)
         right_layout.addLayout(self.buttons_layout2)
 
-        # new layout
+        # Video widget for mode 2
         self.video_widget_layout = QVBoxLayout()
         self.video_widget = QVideoWidget()
         self.video_widget_layout.addWidget(self.video_widget)
 
-        # Splitter
-        splitter = QSplitter(Qt.Orientation.Horizontal)
-        splitter.addWidget(self.left_panel)
+        # Right Panel
         self.right_panel_widget = QWidget()
         self.right_panel_widget.setLayout(right_layout)
-        splitter.addWidget(self.right_panel_widget)
-        splitter.setStretchFactor(0, 1)
-
-        # Central widget
-        main_layout = QHBoxLayout()
-        main_layout.addWidget(splitter)
-        central_widget = QWidget(self)
-        central_widget.setLayout(main_layout)
-        self.setCentralWidget(central_widget)
-
-        # Processing threads
-        self.create_processing_threads()
-
-        # Connections
-        self.connect_all()
 
     def create_left_panel(self):
         """Creates left panel with settings including model selection
         for all modes, start button for 3 and progress bar for mode 2,3"""
+
         # Label for tutorial
         self.label_layout = QHBoxLayout()
         self.hint_label = QLabel("Start by selecting source from Start menu above")
@@ -178,25 +193,32 @@ class MainWindow(QMainWindow):
         self.label_layout.setContentsMargins(0, 0, 0, 0)
         self.spacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         self.label_layout.addItem(self.spacer)
+
+        # Model selection groupboxes
         self.create_group_face_det()
         self.create_group_age_det()
+
+        # Constant Layout
         options_layout = QVBoxLayout()
         options_layout.addLayout(self.label_layout)
         options_layout.addWidget(self.group_face_model)
         options_layout.addWidget(self.group_age_model)
 
+        # Additional layout for temp buttons
         buttons_layout = QHBoxLayout()
         self.start_btn = QPushButton("Start")
         self.start_btn.setSizePolicy(QSizePolicy.Policy.Preferred,
-                                      QSizePolicy.Policy.Preferred)
+                                     QSizePolicy.Policy.Preferred)
         self.start_btn.setHidden(True)
         buttons_layout.addWidget(self.start_btn)
-        # add progress bar
+
+        # Progress bar
         pbar_layout = QHBoxLayout()
         self.pbar = QProgressBar(self)
         self.pbar.setHidden(True)
         pbar_layout.addWidget(self.pbar)
 
+        # Final layout
         options_and_buttons_layout = QVBoxLayout()
         options_and_buttons_layout.addLayout(options_layout)
         options_and_buttons_layout.addLayout(buttons_layout)
@@ -204,10 +226,11 @@ class MainWindow(QMainWindow):
         spacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         options_and_buttons_layout.addItem(spacer)
 
-        left_panel = QGroupBox()
-        left_panel.setLayout(options_and_buttons_layout)
-        left_panel.setMaximumWidth(300)
-        self.left_panel = left_panel
+        # Left Panel
+        left_panel_widget = QGroupBox()
+        left_panel_widget.setLayout(options_and_buttons_layout)
+        left_panel_widget.setMaximumWidth(300)
+        self.left_panel_widget = left_panel_widget
 
     def create_processing_threads(self):
         """Creates threads for image processing"""
@@ -215,12 +238,14 @@ class MainWindow(QMainWindow):
         self.th = ProcessingThread(self)
         self.th.finished.connect(self.remove_image)
         self.th.updateFrame.connect(self.set_image)
+
         # Thread for Picture Mode
         self.image_thread = ImageProcessingThread(self.images)
         self.image_thread.imagesProcessed.connect(self.load_images_to_display)
         self.image_thread.progress.connect(self.pbar.setValue)
         self.image_thread.finished.connect(self.pbar.reset)
         self.image_thread.finished.connect(self.pbar.hide)
+
         # Thread for File Video Mode
         self.video_thread = VideoProcessingThread()
         self.video_thread.videoProcessed.connect(self.load_video)
@@ -487,11 +512,11 @@ class MainWindow(QMainWindow):
         self.source_label.setHidden(False)
         self.hint_label.setText("You can switch the models and the changes will be reflected immediately on the video.\nClick on 'Stop Live Capture' button to stop this mode.")
         self.live = True
-        self.start_thread()
+        self.start_live_vide_thread()
 
     def stop_live_capture(self):
         "Stops live capture and resets UI"
-        self.kill_thread()
+        self.kill_live_video_thread()
         self.reset_graphics_display()
         self.stop_live_btn.setHidden(True)
         self.source_label.setHidden(True)
@@ -525,9 +550,9 @@ class MainWindow(QMainWindow):
         self.scene.clear()
 
     @pyqtSlot()
-    def kill_thread(self):
+    def kill_live_video_thread(self):
         logging.debug("Finishing live recording...")
-        cv2.destroyAllWindows()  # TODO: check if needed
+        cv2.destroyAllWindows()
         if type(self.th.camera) == cv2.VideoCapture:
             self.th.camera.release()
         self.live = False
@@ -535,7 +560,7 @@ class MainWindow(QMainWindow):
         time.sleep(2)  # Give time for the thread to finish
 
     @pyqtSlot()
-    def start_thread(self):
+    def start_live_vide_thread(self):
         logging.debug("Starting live video capture...")
         self.th.set_fd_model(self.fd_combobox.currentText())
         self.th.set_ad_file(self.ad_combobox.currentText())
