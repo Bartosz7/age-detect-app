@@ -297,6 +297,38 @@ class MainWindow(QMainWindow):
         self.view.fitInView(self.scene.sceneRect(),
                             Qt.AspectRatioMode.KeepAspectRatio)
 
+    def create_group_face_det(self):
+        # Face detection Model Group
+        self.group_face_model = QGroupBox("Face detection model")
+        self.group_face_model.setSizePolicy(QSizePolicy.Policy.Preferred,
+                                            QSizePolicy.Policy.Expanding)
+        model_layout = QHBoxLayout()
+        self.fd_combobox = QComboBox()
+        for fd_model_name in Config.FACE_DETECTION_MODELS.keys():
+            self.fd_combobox.addItem(fd_model_name)
+        # Connections
+        self.fd_combobox.currentTextChanged.connect(self.set_fd_model)
+        # Face detection model layout
+        model_layout.addWidget(QLabel("Model:"), 10)
+        model_layout.addWidget(self.fd_combobox, 90)
+        self.group_face_model.setLayout(model_layout)
+
+    def create_group_age_det(self):
+        # Age detection Model Group
+        self.group_age_model = QGroupBox("Age detection model")
+        self.group_age_model.setSizePolicy(QSizePolicy.Policy.Preferred,
+                                           QSizePolicy.Policy.Expanding)
+        model_layout = QHBoxLayout()
+        self.ad_combobox = QComboBox()
+        for model in Config.AGE_DETECTION_MODELS.keys():
+            self.ad_combobox.addItem(model)
+        # Connections
+        self.ad_combobox.currentTextChanged.connect(self.set_ad_model)
+        # Age detection model layout
+        model_layout.addWidget(QLabel("Model:"), 10)
+        model_layout.addWidget(self.ad_combobox, 90)
+        self.group_age_model.setLayout(model_layout)
+
     def load_video(self, output_dir):
         print(output_dir)
         self.media_player = QMediaPlayer()
@@ -331,38 +363,6 @@ class MainWindow(QMainWindow):
                 return True
             return False  # Indicate the event was handled
         return super().event(event)
-
-    def create_group_face_det(self):
-        # Face detection Model Group
-        self.group_face_model = QGroupBox("Face detection model")
-        self.group_face_model.setSizePolicy(QSizePolicy.Policy.Preferred,
-                                            QSizePolicy.Policy.Expanding)
-        model_layout = QHBoxLayout()
-        self.fd_combobox = QComboBox()
-        for fd_model_name in Config.FACE_DETECTION_MODELS.keys():
-            self.fd_combobox.addItem(fd_model_name)
-        # Connections
-        self.fd_combobox.currentTextChanged.connect(self.set_fd_model)
-        # Face detection model layout
-        model_layout.addWidget(QLabel("Model:"), 10)
-        model_layout.addWidget(self.fd_combobox, 90)
-        self.group_face_model.setLayout(model_layout)
-
-    def create_group_age_det(self):
-        # Age detection Model Group
-        self.group_age_model = QGroupBox("Age detection model")
-        self.group_age_model.setSizePolicy(QSizePolicy.Policy.Preferred,
-                                           QSizePolicy.Policy.Expanding)
-        model_layout = QHBoxLayout()
-        self.ad_combobox = QComboBox()
-        for model in Config.AGE_DETECTION_MODELS.keys():
-            self.ad_combobox.addItem(model)
-        # Connections
-        self.ad_combobox.currentTextChanged.connect(self.set_ad_model)
-        # Age detection model layout
-        model_layout.addWidget(QLabel("Model:"), 10)
-        model_layout.addWidget(self.ad_combobox, 90)
-        self.group_age_model.setLayout(model_layout)
 
     def load_images_from_selection(self):
         self.stop_live_capture()
