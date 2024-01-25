@@ -81,8 +81,9 @@ class MainWindow(QMainWindow):
         self.create_left_panel()
 
         # Right Panel: Graphics and navigation
-        self.image_label = QLabel("Source Filename")
-        self.image_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        self.source_label = QLabel()
+        self.source_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        self.source_label.setHidden(True)
         self.view = GraphicsViewWithZoom(self)
         self.view.setMinimumSize(QSize(640, 480))
         self.view.setStyleSheet("border: 2px solid black;background-color: #333333;")
@@ -98,7 +99,7 @@ class MainWindow(QMainWindow):
 
         # Right layout only for QGraphics
         right_layout = QVBoxLayout()
-        right_layout.addWidget(self.image_label)
+        right_layout.addWidget(self.source_label)
 
         # Nav. buttons
         self.buttons_layout = QHBoxLayout()
@@ -203,7 +204,7 @@ class MainWindow(QMainWindow):
         spacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         options_and_buttons_layout.addItem(spacer)
 
-        left_panel = QGroupBox("Settings")
+        left_panel = QGroupBox()
         left_panel.setLayout(options_and_buttons_layout)
         left_panel.setMaximumWidth(300)
         self.left_panel = left_panel
@@ -423,7 +424,8 @@ class MainWindow(QMainWindow):
         self.view.setScene(self.scene)
         self.view.fitInView(self.scene.sceneRect(),
                             Qt.AspectRatioMode.KeepAspectRatio)
-        self.image_label.setText(f"{image_file} ({index + 1} of {self.total_images})")
+        self.source_label.setText(f"{image_file} ({index + 1} of {self.total_images})")
+        self.source_label.setHidden(False)
 
     def show_previous(self):
         self.next_button.setEnabled(True)
@@ -480,7 +482,8 @@ class MainWindow(QMainWindow):
         self.prev_button.setHidden(True)
         self.next_button.setHidden(True)
         self.stop_live_btn.setHidden(False)
-        self.image_label.setText("Live Video 🔴")
+        self.source_label.setText("Live Video 🔴")
+        self.source_label.setHidden(False)
         self.hint_label.setText("You can switch the models and the changes will be reflected immediately on the video.\nClick on 'Stop Live Capture' button to stop this mode.")
         self.live = True
         self.start_thread()
@@ -490,7 +493,7 @@ class MainWindow(QMainWindow):
         self.kill_thread()
         self.reset_graphics_display()
         self.stop_live_btn.setHidden(True)
-        self.image_label.setText("Source")
+        self.source_label.setHidden(True)
         self.hint_label.setText("Start by selecting source from Start menu above")
 
     def start_btn_clicked(self):
