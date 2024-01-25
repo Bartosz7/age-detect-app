@@ -6,21 +6,24 @@ from functools import reduce
 
 import cv2
 from PyQt6.QtCore import (Qt, QThread, pyqtSignal, pyqtSlot,
-                          QSize, QRectF, QTimer)
-from PyQt6.QtGui import QAction, QImage, QPixmap, QIcon, QKeyEvent, QPainter
+                          QSize, QRectF, QTimer, QUrl)
+from PyQt6.QtGui import (QAction, QImage, QPixmap, QIcon, QKeyEvent, QPainter)
 from PyQt6.QtWidgets import (QApplication, QComboBox, QGroupBox,
                              QHBoxLayout, QLabel, QMainWindow, QPushButton,
                              QSizePolicy, QVBoxLayout, QWidget, QFileDialog,
                              QGraphicsView, QGraphicsScene, QSplitter,
                              QGraphicsPixmapItem, QSpacerItem, QProgressBar)
+from PyQt6.QtMultimediaWidgets import QVideoWidget
+from PyQt6.QtMultimedia import QMediaPlayer
 
 from config import Config
 from face_detection import DetectedFace, FaceDetectors
-from gui.processing import ProcessingThread, ImageProcessingThread
+from gui.processing import ProcessingThread, ImageProcessingThread, VideoProcessingThread
 from gui.about import AboutDialog
 
 
 class GraphicsViewWithZoom(QGraphicsView):
+    """Updated QGraphicsView with zooming capabilities"""
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setRenderHint(QPainter.RenderHint.Antialiasing)
@@ -30,14 +33,11 @@ class GraphicsViewWithZoom(QGraphicsView):
         zoomInFactor = 1.25
         zoomOutFactor = 1 / zoomInFactor
 
-        # Save the scene pos
         oldPos = self.mapToScene(event.position().toPoint())
 
-        # Save the initial scale factor
         if self.initialScaleFactor is None:
             self.initialScaleFactor = self.transform().m11()
 
-        # Zoom
         if event.angleDelta().y() > 0:
             zoomFactor = zoomInFactor
         else:
@@ -45,12 +45,9 @@ class GraphicsViewWithZoom(QGraphicsView):
                 zoomFactor = zoomOutFactor
             else:
                 return
+
         self.scale(zoomFactor, zoomFactor)
-
-        # Get the new position
         newPos = self.mapToScene(event.position().toPoint())
-
-        # Move scene to old position
         delta = newPos - oldPos
         self.translate(delta.x(), delta.y())
 
@@ -98,12 +95,11 @@ class MainWindow(QMainWindow):
         self.menu_about.addAction(license)
 
         # Left Panel: options layout
-        # create a new QHBoxLayout() with single label
+        # Label for tutorial
         self.label_layout = QHBoxLayout()
-        # make label look nicer
         self.label_desc = QLabel("Start by selecting source from Start menu above")
         self.label_desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.label_desc.setStyleSheet("font-style: italic; color: #999999;")
+        self.label_desc.setStyleSheet("font-size: 14px; font-style: italic; color: #999999;")
         self.label_desc.setWordWrap(True)
         self.label_desc.setFixedWidth(280)
         self.label_layout.addWidget(self.label_desc)
@@ -193,13 +189,18 @@ class MainWindow(QMainWindow):
         right_layout.addLayout(self.buttons_layout)
         right_layout.addLayout(self.buttons_layout2)
 
+        # new layout
+        self.video_widget_layout = QVBoxLayout()
+        self.video_widget = QVideoWidget()
+        self.video_widget_layout.addWidget(self.video_widget)
+
         # Splitter
         splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.addWidget(options_group_box)
         # splitter.addWidget(QWidget())
-        right_panel_widget = QWidget()
-        right_panel_widget.setLayout(right_layout)
-        splitter.addWidget(right_panel_widget)
+        self.right_panel_widget = QWidget()
+        self.right_panel_widget.setLayout(right_layout)
+        splitter.addWidget(self.right_panel_widget)
         splitter.setStretchFactor(0, 1)
 
         # Central widget
@@ -219,12 +220,37 @@ class MainWindow(QMainWindow):
         self.image_thread.progress.connect(self.pbar.setValue)
         self.image_thread.finished.connect(self.pbar.reset)
         self.image_thread.finished.connect(self.pbar.hide)
+        # 3rd thread for video processing
+        self.video_thread = VideoProcessingThread()
+        self.video_thread.videoProcessed.connect(self.load_video)
+        self.video_thread.progress.connect(self.pbar.setValue)
+        self.video_thread.finished.connect(self.pbar.reset)
+        self.video_thread.finished.connect(self.pbar.hide)
+
         # Connections
         self.connect_all()
 
-        # Video Player timer 
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update_video)
+    def create_graphics_view(self):
+        self.view = GraphicsViewWithZoom(self)
+        self.view.setMinimumSize(QSize(640, 480))
+        self.view.setStyleSheet("border: 2px solid black;background-color: #333333;")
+        self.scene = QGraphicsScene()
+        if Config.WELCOME_IMAGE is not None:
+            image_path = os.path.join(Config.STATIC_DIR_PATH,
+                                      Config.WELCOME_IMAGE)
+            pixmap = QPixmap(image_path)
+            self.scene.addPixmap(pixmap)
+        self.view.setScene(self.scene)
+        self.view.fitInView(self.scene.sceneRect(),
+                            Qt.AspectRatioMode.KeepAspectRatio)
+
+    def load_video(self, output_dir):
+        print(output_dir)
+        self.media_player = QMediaPlayer()
+        self.media_player.setVideoOutput(self.video_widget)
+        self.right_panel_widget.setLayout(self.video_widget_layout)
+        self.media_player.setSource(QUrl.fromLocalFile(output_dir))
+        self.media_player.play()
 
     def load_images_to_display(self, image_dir_path: str):
         print(image_dir_path)
@@ -245,22 +271,6 @@ class MainWindow(QMainWindow):
         self.images = []
         self.total_images = len(self.images)
         self.current_image_index = 0
-
-    def update_video(self):
-        ret, frame = self.capture.read()
-
-        if ret:
-            height, width, channel = frame.shape
-            bytes_per_line = 3 * width
-            q_image = QImage(frame.data, width, height, bytes_per_line, QImage.Format.Format_RGB888).rgbSwapped()
-            self.scene.clear()
-            self.scene.addPixmap(QPixmap.fromImage(q_image))
-            self.view.fitInView(self.scene.sceneRect(),
-                                Qt.AspectRatioMode.KeepAspectRatio)
-            # current_frame = int(self.capture.get(cv2.CAP_PROP_POS_FRAMES))
-        else:
-            self.timer.stop()
-            self.capture.release()
 
     def event(self, event):
         if event.type() == QKeyEvent.Type.KeyPress:
@@ -306,7 +316,6 @@ class MainWindow(QMainWindow):
 
     def load_images_from_selection(self):
         self.stop_live_capture()
-        self.timer.stop()
         file_dialog = QFileDialog()
         file_dialog.setNameFilter("Images (*.png *.jpg *.jpeg)")
         file_dialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
@@ -339,7 +348,6 @@ class MainWindow(QMainWindow):
 
     def load_folder_images(self):
         logging.debug("Action: load photo directory")
-        self.timer.stop()
         folder_path = self.open_directory_dialog()
         if folder_path:
             image_extensions = ['.jpg', '.jpeg', '.png']
@@ -412,21 +420,14 @@ class MainWindow(QMainWindow):
             self.show_image(self.current_image_index)
 
     def load_video_file(self):
-        self.timer.stop()
         file_dialog = QFileDialog()
         filepath, _ = file_dialog.getOpenFileName(self, "Open Video", "", "Video Files (*.mp4 *.avi *.mkv)")
-
-        if filepath:
-            self.capture = cv2.VideoCapture(filepath)
-            self.total_frames = int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))
-            # self.slider.setMinimum(0)
-            # self.slider.setMaximum(self.total_frames - 1)
-            self.play_video()
-
-    def play_video(self):
         self.reset_graphics_display()
-        if not self.timer.isActive():
-            self.timer.start(10)  # Adjust timer interval as needed (33 milliseconds for ~30 fps)
+        self.pbar.setHidden(False)
+        self.video_thread.set_ad_file(self.ad_combobox.currentText())
+        self.video_thread.set_fd_model(self.fd_combobox.currentText())
+        self.video_thread.set_video_path(filepath)
+        self.video_thread.start()
 
     def set_fd_model(self, face_detector_name: str):
         self.th.set_fd_model(face_detector_name)
@@ -445,7 +446,6 @@ class MainWindow(QMainWindow):
     def start_live_capture(self):
         """Sets the proper UI and starts live video capture from webcam"""
         self.remove_image()
-        self.timer.stop()
         self.images = []
         self.total_images = 0
         self.start_btn.setHidden(True)
@@ -475,7 +475,6 @@ class MainWindow(QMainWindow):
         self.start_btn.setEnabled(False)
         # self.remove_image()
         # if self.start_btn.isChecked():
-        #     self.timer.stop()
         #     self.images = []
         #     self.total_images = 0
         #     self.start_btn.setText("Stop")
