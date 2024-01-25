@@ -156,6 +156,8 @@ class MainWindow(QMainWindow):
                                        "arrow_right.png"))
         self.prev_button.setIcon(prev_icon)
         self.next_button.setIcon(next_icon)
+        self.prev_button.setIconSize(QSize(40, 40))  # Set the icon size
+        self.next_button.setIconSize(QSize(40, 40))  # Set the icon size
         self.buttons_layout.addWidget(self.prev_button)
         self.buttons_layout.addWidget(self.next_button)
         self.prev_button.clicked.connect(self.show_previous)
@@ -168,6 +170,7 @@ class MainWindow(QMainWindow):
         self.buttons_layout2.setContentsMargins(0, 0, 0, 0)
         self.buttons_layout2.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.stop_live_button = QPushButton("Stop Live Capture")
+        self.stop_live_button.setStyleSheet("font-size: 16px;")  # Set the font size
         self.buttons_layout2.addWidget(self.stop_live_button)
         self.stop_live_button.clicked.connect(self.stop_live_capture)
         self.stop_live_button.setHidden(True)
