@@ -53,7 +53,7 @@ class GraphicsViewWithZoom(QGraphicsView):
 
 
 class MainWindow(QMainWindow):
-
+    """Main window of the application"""
     def __init__(self):
         super().__init__()
 
@@ -161,17 +161,21 @@ class MainWindow(QMainWindow):
         self.buttons_layout = QHBoxLayout()
         self.buttons_layout.setContentsMargins(0, 0, 0, 0)
         self.buttons_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.prev_button = QPushButton("<")
-        self.next_button = QPushButton(">")
+        self.prev_button = QPushButton()
+        self.next_button = QPushButton()
+        # https://www.flaticon.com/free-icon/arrow-left_748099?term=arrow%20left&page=1&position=1&page=1&position=1&related_id=748099&origin=search
+        prev_icon = QIcon(os.path.join(Config.STATIC_DIR_PATH, "arrow_left.png"))
+        next_icon = QIcon(os.path.join(Config.STATIC_DIR_PATH, "arrow_right.png"))
+        self.prev_button.setIcon(prev_icon)
+        self.next_button.setIcon(next_icon)
         self.buttons_layout.addWidget(self.prev_button)
         self.buttons_layout.addWidget(self.next_button)
         self.prev_button.clicked.connect(self.show_previous)
         self.next_button.clicked.connect(self.show_next)
-        # hide at first
         self.prev_button.setHidden(True)
         self.next_button.setHidden(True)
 
-        # additional button layour for stopping live video
+        # additional button layout for stopping live video
         self.buttons_layout2 = QHBoxLayout()
         self.buttons_layout2.setContentsMargins(0, 0, 0, 0)
         self.buttons_layout2.setAlignment(Qt.AlignmentFlag.AlignCenter)
