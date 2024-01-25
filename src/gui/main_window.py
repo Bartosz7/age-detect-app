@@ -87,7 +87,7 @@ class MainWindow(QMainWindow):
         self.view.setMinimumSize(QSize(640, 480))
         self.view.setStyleSheet("border: 2px solid black;background-color: #333333;")
         self.scene = QGraphicsScene()
-        if Config.WELCOME_IMAGE is not None:
+        if Config.WELCOME_IMAGE != "":
             image_path = os.path.join(Config.STATIC_DIR_PATH,
                                       Config.WELCOME_IMAGE)
             pixmap = QPixmap(image_path)
@@ -263,7 +263,7 @@ class MainWindow(QMainWindow):
         self.view.setMinimumSize(QSize(640, 480))
         self.view.setStyleSheet("border: 2px solid black;background-color: #333333;")
         self.scene = QGraphicsScene()
-        if Config.WELCOME_IMAGE is not None:
+        if Config.WELCOME_IMAGE != "":
             image_path = os.path.join(Config.STATIC_DIR_PATH,
                                       Config.WELCOME_IMAGE)
             pixmap = QPixmap(image_path)
