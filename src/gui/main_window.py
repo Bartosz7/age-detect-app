@@ -64,35 +64,8 @@ class MainWindow(QMainWindow):
         # Age group icons created by Freepik - Flaticon
         self.setWindowIcon(QIcon(os.path.join(Config.STATIC_DIR_PATH, "age-group.png")))
 
-        # Main menu bar with actions
-        self.menu = self.menuBar()
-        self.menu_file = self.menu.addMenu("Start")
-        # Scenario 1
-        start_live_action = QAction("Start Live Capture", self)
-        start_live_action.triggered.connect(self.start_live_capture)
-        self.menu_file.addAction(start_live_action)
-        # Scenario 3A
-        load_images_action = QAction("Select Image(s)", self)
-        load_images_action.triggered.connect(self.load_images_from_selection)
-        self.menu_file.addAction(load_images_action)
-        # Scenario 3B
-        load_images_from_dir_action = QAction("Select Images from Folder", self)
-        self.menu_file.addAction(load_images_from_dir_action)
-        load_images_from_dir_action.triggered.connect(self.load_folder_images)
-        # Scenario 2
-        load_video_action = QAction("Select Video", self)
-        load_video_action.triggered.connect(self.load_video_file)
-        self.menu_file.addAction(load_video_action)
-        # Other Actions
-        exit = QAction("Exit", self, triggered=QApplication.quit)
-        self.menu_file.addAction(exit)
-        self.menu_about = self.menu.addMenu("&About")
-        about = QAction("About", self)
-        about.triggered.connect(self.show_about_page)
-        license = QAction("License", self,
-                          triggered=QApplication.aboutQt)
-        self.menu_about.addAction(about)
-        self.menu_about.addAction(license)
+        # Menu Bar
+        self.create_menu_bar()
 
         # Left Panel: options layout
         # Label for tutorial
@@ -233,6 +206,37 @@ class MainWindow(QMainWindow):
 
         # Connections
         self.connect_all()
+
+    def create_menu_bar(self):
+        """Creates a menu bar inc. actions and their connections"""
+        self.menu = self.menuBar()
+        self.menu_file = self.menu.addMenu("Start")
+        # Scenario 1
+        start_live_action = QAction("Start Live Capture", self)
+        start_live_action.triggered.connect(self.start_live_capture)
+        self.menu_file.addAction(start_live_action)
+        # Scenario 3A
+        load_images_action = QAction("Select Image(s)", self)
+        load_images_action.triggered.connect(self.load_images_from_selection)
+        self.menu_file.addAction(load_images_action)
+        # Scenario 3B
+        load_images_from_dir_action = QAction("Select Images from Folder", self)
+        self.menu_file.addAction(load_images_from_dir_action)
+        load_images_from_dir_action.triggered.connect(self.load_folder_images)
+        # Scenario 2
+        load_video_action = QAction("Select Video", self)
+        load_video_action.triggered.connect(self.load_video_file)
+        self.menu_file.addAction(load_video_action)
+        # Other Actions
+        exit = QAction("Exit", self, triggered=QApplication.quit)
+        self.menu_file.addAction(exit)
+        self.menu_about = self.menu.addMenu("&About")
+        about = QAction("About", self)
+        about.triggered.connect(self.show_about_page)
+        license = QAction("License", self,
+                          triggered=QApplication.aboutQt)
+        self.menu_about.addAction(about)
+        self.menu_about.addAction(license)
 
     def create_graphics_view(self):
         self.view = GraphicsViewWithZoom(self)
