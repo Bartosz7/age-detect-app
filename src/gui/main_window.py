@@ -209,7 +209,7 @@ class MainWindow(QMainWindow):
                                      QSizePolicy.Policy.Preferred)
         self.start_button.setHidden(True)
         buttons_layout.addWidget(self.start_button)
-        self.start_button.clicked.connect(self.start_button_clicked)
+        self.start_button.clicked.connect(self.start_image_processing)
 
         # Progress bar
         pbar_layout = QHBoxLayout()
@@ -382,6 +382,8 @@ class MainWindow(QMainWindow):
                 self.prev_button.setEnabled(True)
                 self.start_button.setHidden(False)
                 self.start_button.setEnabled(True)
+                self.fd_combobox.setEnabled(True)
+                self.ad_combobox.setEnabled(True)
                 self.hint_label.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
                 self.show_image(0)
             else:
@@ -487,6 +489,8 @@ class MainWindow(QMainWindow):
         self.remove_image()
         self.images = []
         self.total_images = 0
+        self.fd_combobox.setEnabled(True)
+        self.ad_combobox.setEnabled(True)
         self.start_button.setHidden(True)
         self.prev_button.setHidden(True)
         self.next_button.setHidden(True)
@@ -505,14 +509,16 @@ class MainWindow(QMainWindow):
         self.source_label.setHidden(True)
         self.hint_label.setText("Start by selecting source from Start menu above")
 
-    def start_button_clicked(self):
+    def start_image_processing(self):
         """Starts processing images"""
         self.image_thread.set_images_paths_list(self.images)
         self.image_thread.set_fd_model(self.fd_combobox.currentText())
         self.image_thread.set_ad_file(self.ad_combobox.currentText())
         self.pbar.setHidden(False)
         self.image_thread.start()
-        self.start_button.setEnabled(False)
+        self.fd_combobox.setEnabled(False)
+        self.ad_combobox.setEnabled(False)
+        self.start_button.setHidden(True)
 
     @pyqtSlot(QImage)
     def set_image(self, image):
