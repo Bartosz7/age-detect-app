@@ -154,10 +154,10 @@ class MainWindow(QMainWindow):
         self.buttons_layout2 = QHBoxLayout()
         self.buttons_layout2.setContentsMargins(0, 0, 0, 0)
         self.buttons_layout2.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.stop_live_btn = QPushButton("Stop Live Capture")
-        self.buttons_layout2.addWidget(self.stop_live_btn)
-        self.stop_live_btn.clicked.connect(self.stop_live_capture)
-        self.stop_live_btn.setHidden(True)
+        self.stop_live_button = QPushButton("Stop Live Capture")
+        self.buttons_layout2.addWidget(self.stop_live_button)
+        self.stop_live_button.clicked.connect(self.stop_live_capture)
+        self.stop_live_button.setHidden(True)
 
         # Right Panel
         right_layout.addWidget(self.view)
@@ -202,12 +202,12 @@ class MainWindow(QMainWindow):
 
         # Additional layout for temp buttons
         buttons_layout = QHBoxLayout()
-        self.start_btn = QPushButton("Start")
-        self.start_btn.setSizePolicy(QSizePolicy.Policy.Preferred,
+        self.start_button = QPushButton("Start")
+        self.start_button.setSizePolicy(QSizePolicy.Policy.Preferred,
                                      QSizePolicy.Policy.Preferred)
-        self.start_btn.setHidden(True)
-        buttons_layout.addWidget(self.start_btn)
-        self.start_btn.clicked.connect(self.start_btn_clicked)
+        self.start_button.setHidden(True)
+        buttons_layout.addWidget(self.start_button)
+        self.start_button.clicked.connect(self.start_button_clicked)
 
         # Progress bar
         pbar_layout = QHBoxLayout()
@@ -380,14 +380,14 @@ class MainWindow(QMainWindow):
                     self.next_button.setHidden(False)
                     self.prev_button.setEnabled(False)
                     self.next_button.setEnabled(True)
-                    self.start_btn.setHidden(False)
-                    self.start_btn.setEnabled(True)
+                    self.start_button.setHidden(False)
+                    self.start_button.setEnabled(True)
                 if self.total_images == 1:
                     self.hint_label.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
                     self.prev_button.setHidden(True)
                     self.next_button.setHidden(True)
-                    self.start_btn.setHidden(False)
-                    self.start_btn.setEnabled(True)
+                    self.start_button.setHidden(False)
+                    self.start_button.setEnabled(True)
                 self.show_image(0)
 
     def open_directory_dialog(self):
@@ -408,8 +408,8 @@ class MainWindow(QMainWindow):
                 self.total_images = len(self.images)
                 self.hint_label.setText("""The images were loaded. You can preview them by using '<' and '>' buttons.
                                         Select the desired models below and click on 'Start' button to start processing the images""")
-                self.start_btn.setHidden(False)
-                self.start_btn.setEnabled(True)
+                self.start_button.setHidden(False)
+                self.start_button.setEnabled(True)
                 self.show_image(0)
 
     def reset_graphics_display(self):
@@ -502,10 +502,10 @@ class MainWindow(QMainWindow):
         self.remove_image()
         self.images = []
         self.total_images = 0
-        self.start_btn.setHidden(True)
+        self.start_button.setHidden(True)
         self.prev_button.setHidden(True)
         self.next_button.setHidden(True)
-        self.stop_live_btn.setHidden(False)
+        self.stop_live_button.setHidden(False)
         self.source_label.setText("Live Video 🔴")
         self.source_label.setHidden(False)
         self.hint_label.setText("You can switch the models and the changes will be reflected immediately on the video.\nClick on 'Stop Live Capture' button to stop this mode.")
@@ -516,18 +516,18 @@ class MainWindow(QMainWindow):
         "Stops live capture and resets UI"
         self.kill_live_video_thread()
         self.reset_graphics_display()
-        self.stop_live_btn.setHidden(True)
+        self.stop_live_button.setHidden(True)
         self.source_label.setHidden(True)
         self.hint_label.setText("Start by selecting source from Start menu above")
 
-    def start_btn_clicked(self):
+    def start_button_clicked(self):
         """Starts processing images"""
         self.image_thread.set_images_paths_list(self.images)
         self.image_thread.set_fd_model(self.fd_combobox.currentText())
         self.image_thread.set_ad_file(self.ad_combobox.currentText())
         self.pbar.setHidden(False)
         self.image_thread.start()
-        self.start_btn.setEnabled(False)
+        self.start_button.setEnabled(False)
 
     @pyqtSlot(QImage)
     def set_image(self, image):
