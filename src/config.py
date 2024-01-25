@@ -28,8 +28,8 @@ class Config:
     }
     AGE_DETECTION_MODELS = {
         # GUI/text name : AgeDetector.Enum
-        "Sweet18 Model": "model18",
-        "ResNet-based Model": "resnetmodel"
+        "ResNet-based Model": "resnetmodel",
+        "Sweet18 Model": "model18"
     }
 
     # Directory for GUI static elements (must be absolute path from project root)
