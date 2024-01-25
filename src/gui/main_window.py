@@ -287,14 +287,10 @@ class MainWindow(QMainWindow):
         image_files = [os.path.join(image_dir_path, file) for file in os.listdir(image_dir_path)
                        if os.path.isfile(os.path.join(image_dir_path, file)) and
                        os.path.splitext(file)[1].lower() in image_extensions]
-        self.current_image_index = 0
+        # self.current_image_index = 0
         self.images = image_files
         self.total_images = len(self.images)
-        self.prev_button.setHidden(False)
-        self.next_button.setHidden(False)
-        self.prev_button.setEnabled(False)
-        self.next_button.setEnabled(True)
-        self.show_image(0)
+        self.show_image(self.current_image_index)
 
     def reset_images(self):
         self.images = []
@@ -414,6 +410,21 @@ class MainWindow(QMainWindow):
         about_dialog.exec()
 
     def show_image(self, index):
+        if self.total_images == 0:
+            return
+        if self.total_images == 1:
+            self.prev_button.setEnabled(False)
+            self.next_button.setEnabled(False)
+        else:
+            if index == self.total_images - 1:
+                self.next_button.setEnabled(False)
+                self.prev_button.setEnabled(True)
+            elif index == 0:
+                self.prev_button.setEnabled(False)
+                self.next_button.setEnabled(True)
+            else:
+                self.prev_button.setEnabled(True)
+                self.next_button.setEnabled(True)
         image_fullpath = self.images[index]
         image_file = os.path.basename(image_fullpath)
         pixmap = QPixmap(image_fullpath)
