@@ -376,21 +376,16 @@ class MainWindow(QMainWindow):
             self.current_image_index = 0
             self.total_images = len(self.images)
             if self.total_images > 0:
-                if self.total_images > 1:
-                    self.hint_label.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
-                    self.prev_button.setHidden(False)
-                    self.next_button.setHidden(False)
-                    self.prev_button.setEnabled(False)
-                    self.next_button.setEnabled(True)
-                    self.start_button.setHidden(False)
-                    self.start_button.setEnabled(True)
-                if self.total_images == 1:
-                    self.hint_label.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
-                    self.prev_button.setHidden(True)
-                    self.next_button.setHidden(True)
-                    self.start_button.setHidden(False)
-                    self.start_button.setEnabled(True)
+                self.next_button.setHidden(False)
+                self.next_button.setEnabled(True)
+                self.prev_button.setHidden(False)
+                self.prev_button.setEnabled(True)
+                self.start_button.setHidden(False)
+                self.start_button.setEnabled(True)
+                self.hint_label.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
                 self.show_image(0)
+            else:
+                self.hint_label.setText("No images were selected/loaded. Start by selecting source from Start menu above")
 
     def open_directory_dialog(self):
         """Opens directory selection window"""
