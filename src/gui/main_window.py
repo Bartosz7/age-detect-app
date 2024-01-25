@@ -33,10 +33,10 @@ Also referred to as mode 1, mode 2, mode 3 respectively.
 
 
 HINTS = {
-    "start": "Start by selecting source from Start menu above"
+    "start": "Start by selecting source from Start menu above",
     "live": "You can switch the models and the changes will be reflected immediately on the video.\nClick on 'Stop Live Capture' button to stop this mode.",
     "video": "Select the desired models below and click on 'Start' button to start processing the video.",
-    "images": "The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images."
+    "images": "The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images.",
     "no_images": "No images were selected/loaded. Start by selecting source from Start menu above"
 }
 
