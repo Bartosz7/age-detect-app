@@ -454,24 +454,12 @@ class MainWindow(QMainWindow):
         self.source_label.setHidden(False)
 
     def show_previous(self):
-        self.next_button.setEnabled(True)
-        if self.current_image_index == 1:
-            self.prev_button.setEnabled(False)
-            self.current_image_index -= 1
-            self.show_image(self.current_image_index)
-        if self.current_image_index > 1:
-            self.prev_button.setEnabled(True)
+        if self.current_image_index > 0:
             self.current_image_index -= 1
             self.show_image(self.current_image_index)
 
     def show_next(self):
-        self.prev_button.setEnabled(True)
-        if self.current_image_index == len(self.images) - 2:
-            self.next_button.setEnabled(False)
-            self.current_image_index += 1
-            self.show_image(self.current_image_index)
-        if self.current_image_index < len(self.images) - 2:
-            self.next_button.setEnabled(True)
+        if self.current_image_index < self.total_images - 1:
             self.current_image_index += 1
             self.show_image(self.current_image_index)
 
