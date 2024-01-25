@@ -187,25 +187,30 @@ class MainWindow(QMainWindow):
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
 
-        # Thread in charge of updating the image
+        # Processing threads
+        self.create_processing_threads()
+
+        # Connections
+        self.connect_all()
+
+    def create_processing_threads(self):
+        """Creates threads for image processing"""
+        # Thread for Live Capture Mode
         self.th = ProcessingThread(self)
         self.th.finished.connect(self.remove_image)
         self.th.updateFrame.connect(self.set_image)
-        # 2nd thread for image processing
+        # Thread for Picture Mode
         self.image_thread = ImageProcessingThread(self.images)
         self.image_thread.imagesProcessed.connect(self.load_images_to_display)
         self.image_thread.progress.connect(self.pbar.setValue)
         self.image_thread.finished.connect(self.pbar.reset)
         self.image_thread.finished.connect(self.pbar.hide)
-        # 3rd thread for video processing
+        # Thread for File Video Mode
         self.video_thread = VideoProcessingThread()
         self.video_thread.videoProcessed.connect(self.load_video)
         self.video_thread.progress.connect(self.pbar.setValue)
         self.video_thread.finished.connect(self.pbar.reset)
         self.video_thread.finished.connect(self.pbar.hide)
-
-        # Connections
-        self.connect_all()
 
     def create_menu_bar(self):
         """Creates a menu bar inc. actions and their connections"""
