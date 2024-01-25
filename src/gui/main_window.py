@@ -32,6 +32,15 @@ Also referred to as mode 1, mode 2, mode 3 respectively.
 """
 
 
+HINTS = {
+    "start": "Start by selecting source from Start menu above"
+    "live": "You can switch the models and the changes will be reflected immediately on the video.\nClick on 'Stop Live Capture' button to stop this mode.",
+    "video": "Select the desired models below and click on 'Start' button to start processing the video.",
+    "images": "The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images."
+    "no_images": "No images were selected/loaded. Start by selecting source from Start menu above"
+}
+
+
 class GraphicsViewWithZoom(QGraphicsView):
     """Updated QGraphicsView with zooming capabilities"""
     def __init__(self, parent=None):
@@ -267,7 +276,7 @@ class MainWindow(QMainWindow):
         # Scenario 3B
         load_images_from_dir_action = QAction("Select Images from Folder", self)
         self.menu_file.addAction(load_images_from_dir_action)
-        load_images_from_dir_action.triggered.connect(self.load_folder_images)
+        load_images_from_dir_action.triggered.connect(self.load_images_from_folder)
         # Scenario 2
         load_video_action = QAction("Select Video", self)
         load_video_action.triggered.connect(self.load_video_file)
@@ -384,16 +393,16 @@ class MainWindow(QMainWindow):
                 self.start_button.setEnabled(True)
                 self.fd_combobox.setEnabled(True)
                 self.ad_combobox.setEnabled(True)
-                self.hint_label.setText("The images were loaded. You can preview them by using '<' and '>' buttons. Select the desired models below and click on 'Start' button to start processing the images")
+                self.hint_label.setText(HINTS.get("images"))
                 self.show_image(0)
             else:
-                self.hint_label.setText("No images were selected/loaded. Start by selecting source from Start menu above")
+                self.hint_label.setText(HINTS.get("no_images"))
 
     def open_directory_dialog(self):
         """Opens directory selection window"""
         return QFileDialog.getExistingDirectory(self, "Select Folder of images")
 
-    def load_folder_images(self):
+    def load_images_from_folder(self):
         logging.debug("Action: load photo directory")
         folder_path = self.open_directory_dialog()
         if folder_path:
@@ -405,8 +414,9 @@ class MainWindow(QMainWindow):
                 self.current_image_index = 0
                 self.images = image_files
                 self.total_images = len(self.images)
-                self.hint_label.setText("""The images were loaded. You can preview them by using '<' and '>' buttons.
-                                        Select the desired models below and click on 'Start' button to start processing the images""")
+                self.hint_label.setText(HINTS.get("live"))
+                self.prev_button.setHidden(False)
+                self.next_button.setHidden(False)
                 self.start_button.setHidden(False)
                 self.start_button.setEnabled(True)
                 self.show_image(0)
@@ -497,7 +507,7 @@ class MainWindow(QMainWindow):
         self.stop_live_button.setHidden(False)
         self.source_label.setText("Live Video 🔴")
         self.source_label.setHidden(False)
-        self.hint_label.setText("You can switch the models and the changes will be reflected immediately on the video.\nClick on 'Stop Live Capture' button to stop this mode.")
+        self.hint_label.setText(HINTS.get("live"))
         self.live = True
         self.start_live_vide_thread()
 
@@ -507,7 +517,7 @@ class MainWindow(QMainWindow):
         self.reset_graphics_display()
         self.stop_live_button.setHidden(True)
         self.source_label.setHidden(True)
-        self.hint_label.setText("Start by selecting source from Start menu above")
+        self.hint_label.setText(HINTS.get("start"))
 
     def start_image_processing(self):
         """Starts processing images"""
