@@ -66,18 +66,28 @@ class MainWindow(QMainWindow):
     """Main window of the application"""
     def __init__(self):
         super().__init__()
+        self.set_window_defaults()
+        self.create_menu_bar()
+        self.create_whole_window()
+        self.create_processing_threads()
 
-        # Title and dimensions
+    def set_window_defaults(self):
+        """Sets window title, size, icon and several
+        variables needed for UI updates"""
         self.setWindowTitle(Config.TITLE)
         self.setGeometry(0, 0, 800, 500)
         # https://www.flaticon.com/free-icons/age-group
         # Age group icons created by Freepik - Flaticon
         self.setWindowIcon(QIcon(os.path.join(Config.STATIC_DIR_PATH, "age_group.png")))
+        # for mode 3
+        self.images = []
+        self.total_images = len(self.images)
+        self.current_image_index = 0
 
-        # Menu Bar
-        self.create_menu_bar()
+    def create_whole_window(self):
+        """Combines left and right panels into one window"""
 
-        # Left Panel: Settings
+        # Create left and right panels
         self.create_left_panel()
         self.create_right_panel()
 
@@ -93,16 +103,6 @@ class MainWindow(QMainWindow):
         central_widget = QWidget(self)
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
-
-        # Processing threads
-        self.create_processing_threads()
-
-        # Connections
-        self.connect_all()
-
-    def create_whole_window(self):
-        """Combines left and right panels into one window"""
-        pass
 
     def create_right_panel(self):
         """Creates right panel with graphics, and utility buttons"""
@@ -159,10 +159,6 @@ class MainWindow(QMainWindow):
         self.stop_live_btn.clicked.connect(self.stop_live_capture)
         self.stop_live_btn.setHidden(True)
 
-        self.images = []
-        self.total_images = len(self.images)
-        self.current_image_index = 0
-
         # Right Panel
         right_layout.addWidget(self.view)
         right_layout.addLayout(self.buttons_layout)
@@ -211,6 +207,7 @@ class MainWindow(QMainWindow):
                                      QSizePolicy.Policy.Preferred)
         self.start_btn.setHidden(True)
         buttons_layout.addWidget(self.start_btn)
+        self.start_btn.clicked.connect(self.start_btn_clicked)
 
         # Progress bar
         pbar_layout = QHBoxLayout()
@@ -342,6 +339,9 @@ class MainWindow(QMainWindow):
         self.fd_combobox = QComboBox()
         for fd_model_name in Config.FACE_DETECTION_MODELS.keys():
             self.fd_combobox.addItem(fd_model_name)
+        # Connections
+        self.fd_combobox.currentTextChanged.connect(self.set_fd_model)
+        # Face detection model layout
         model_layout.addWidget(QLabel("Model:"), 10)
         model_layout.addWidget(self.fd_combobox, 90)
         self.group_face_model.setLayout(model_layout)
@@ -355,14 +355,12 @@ class MainWindow(QMainWindow):
         self.ad_combobox = QComboBox()
         for model in Config.AGE_DETECTION_MODELS.keys():
             self.ad_combobox.addItem(model)
+        # Connections
+        self.ad_combobox.currentTextChanged.connect(self.set_ad_model)
+        # Age detection model layout
         model_layout.addWidget(QLabel("Model:"), 10)
         model_layout.addWidget(self.ad_combobox, 90)
         self.group_age_model.setLayout(model_layout)
-
-    def connect_all(self):
-        self.start_btn.clicked.connect(self.start_btn_clicked)
-        self.fd_combobox.currentTextChanged.connect(self.set_fd_model)
-        self.ad_combobox.currentTextChanged.connect(self.set_ad_model)
 
     def load_images_from_selection(self):
         self.stop_live_capture()
