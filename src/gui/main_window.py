@@ -83,6 +83,8 @@ class MainWindow(QMainWindow):
         self.images = []
         self.total_images = len(self.images)
         self.current_image_index = 0
+        # for mode 1
+        self.live = False
 
     def create_whole_window(self):
         """Combines left and right panels into one window"""
@@ -232,9 +234,9 @@ class MainWindow(QMainWindow):
     def create_processing_threads(self):
         """Creates threads for image processing"""
         # Thread for Live Capture Mode
-        self.th = ProcessingThread(self)
-        self.th.finished.connect(self.remove_image)
-        self.th.updateFrame.connect(self.set_image)
+        self.live_thread = ProcessingThread(self)
+        self.live_thread.finished.connect(self.remove_image)
+        self.live_thread.updateFrame.connect(self.set_image)
 
         # Thread for Picture Mode
         self.image_thread = ImageProcessingThread(self.images)
@@ -484,10 +486,10 @@ class MainWindow(QMainWindow):
         self.video_thread.start()
 
     def set_fd_model(self, face_detector_name: str):
-        self.th.set_fd_model(face_detector_name)
+        self.live_thread.set_fd_model(face_detector_name)
 
     def set_ad_model(self, text):
-        self.th.set_ad_file(text)
+        self.live_thread.set_ad_file(text)
 
     def start_img_scenario(self):
         """Loads images, sets up the UI before processing"""
@@ -551,18 +553,18 @@ class MainWindow(QMainWindow):
     def kill_live_video_thread(self):
         logging.debug("Finishing live recording...")
         cv2.destroyAllWindows()
-        if type(self.th.camera) == cv2.VideoCapture:
-            self.th.camera.release()
+        if type(self.live_thread.camera) == cv2.VideoCapture:
+            self.live_thread.camera.release()
         self.live = False
-        self.th.terminate()
+        self.live_thread.terminate()
         time.sleep(2)  # Give time for the thread to finish
 
     @pyqtSlot()
     def start_live_vide_thread(self):
         logging.debug("Starting live video capture...")
-        self.th.set_fd_model(self.fd_combobox.currentText())
-        self.th.set_ad_file(self.ad_combobox.currentText())
-        self.th.start()
+        self.live_thread.set_fd_model(self.fd_combobox.currentText())
+        self.live_thread.set_ad_file(self.ad_combobox.currentText())
+        self.live_thread.start()
 
 
 if __name__ == "__main__":
