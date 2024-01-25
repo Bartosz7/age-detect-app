@@ -486,18 +486,6 @@ class MainWindow(QMainWindow):
         self.pbar.setHidden(False)
         self.image_thread.start()
         self.start_btn.setEnabled(False)
-        # self.remove_image()
-        # if self.start_btn.isChecked():
-        #     self.images = []
-        #     self.total_images = 0
-        #     self.start_btn.setText("Stop")
-        #     self.prev_button.setHidden(True)
-        #     self.next_button.setHidden(True)
-        #     self.start_thread()
-        # else:
-        #     self.start_btn.setText("Start")
-        #     self.kill_thread()
-        #     self.reset_graphics_display()
 
     @pyqtSlot(QImage)
     def set_image(self, image):
