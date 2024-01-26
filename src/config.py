@@ -6,8 +6,8 @@ from face_detection import FaceDetectors
 class Config:
 
     # General
-    VERSION = 0.1
-    TITLE = "age-detect-app"
+    VERSION = 1.0
+    TITLE = f"Age Detection App {VERSION}"
 
     # Set app general style (OS-dependent!)
     # Choices: [Windows, WindowsVista, Macintosh, Breeze, WindowsXP, Fusion, GTK]
