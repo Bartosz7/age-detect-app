@@ -6,7 +6,7 @@ from face_detection.detection import *
 from config import Config
 
 
-DEBUG = True
+DEBUG = False
 
 if DEBUG:
     logging.basicConfig(level=logging.DEBUG)
