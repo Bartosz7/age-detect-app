@@ -1,7 +1,6 @@
 import os
 import sys
 import time
-import logging
 from functools import reduce
 
 import cv2
@@ -12,7 +11,7 @@ from PyQt6.QtWidgets import (QApplication, QComboBox, QGroupBox,
                              QHBoxLayout, QLabel, QMainWindow, QPushButton,
                              QSizePolicy, QVBoxLayout, QWidget, QFileDialog,
                              QGraphicsView, QGraphicsScene, QSplitter,
-                             QGraphicsPixmapItem, QSpacerItem, QProgressBar)
+                             QGraphicsPixmapItem, QSpacerItem, QProgressBar, QMessageBox)
 from PyQt6.QtMultimediaWidgets import QVideoWidget
 from PyQt6.QtMultimedia import QMediaPlayer
 
@@ -20,6 +19,7 @@ from config import Config
 from face_detection import DetectedFace, FaceDetectors
 from gui.processing import ProcessingThread, ImageProcessingThread, VideoProcessingThread
 from gui.about import AboutDialog
+from gui.video_preview import VideoPlayerWindow
 
 """
 This file contains the core elements of the PyQt6 GUI application
@@ -97,6 +97,31 @@ class MainWindow(QMainWindow):
         # for mode 1
         self.live = False
 
+    def show_modal_dialog(self):
+        """Shows a modal dialog with OK and Cancel buttons for mode 2"""
+        # Create a modal dialog with OK and Cancel buttons
+        dialog = QMessageBox(self)
+        dialog.setWindowTitle("Warning")
+        dialog.setIcon(QMessageBox.Icon.Question)
+        dialog.setText("Video preview and display is not currently available.\n"
+                       "For this mode you should firstly choose the models and then Click 'Load Video'\n\n"
+                       "Currently chosen models:\n"
+                       f"Face detection: {self.fd_combobox.currentText()}\n"
+                       f"Age prediction: {self.ad_combobox.currentText()}\n\n"
+                        "Do you want to continue?"
+                        "\n\nNote: The result file will be available in output directory named after "
+                        "the timestamp of the operation")
+        dialog.setStandardButtons(QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+
+        # Show the dialog and get the result
+        result = dialog.exec()
+
+        # Process the result
+        if result == QMessageBox.StandardButton.Ok:
+            return True
+        elif result == QMessageBox.StandardButton.Cancel:
+            return False
+
     def create_whole_window(self):
         """Combines left and right panels into one window"""
 
@@ -170,7 +195,7 @@ class MainWindow(QMainWindow):
         self.buttons_layout2.setContentsMargins(0, 0, 0, 0)
         self.buttons_layout2.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.stop_live_button = QPushButton("Stop Live Capture")
-        self.stop_live_button.setStyleSheet("font-size: 16px;")  # Set the font size
+        self.stop_live_button.setStyleSheet("font-size: 16px;")
         self.buttons_layout2.addWidget(self.stop_live_button)
         self.stop_live_button.clicked.connect(self.stop_live_capture)
         self.stop_live_button.setHidden(True)
@@ -349,12 +374,8 @@ class MainWindow(QMainWindow):
         self.show_image(self.current_image_index)
 
     def load_video(self, output_dir):
-        print(output_dir)
-        self.media_player = QMediaPlayer()
-        self.media_player.setVideoOutput(self.video_widget)
-        self.right_panel_widget.setLayout(self.video_widget_layout)
-        self.media_player.setSource(QUrl.fromLocalFile(output_dir))
-        self.media_player.play()
+        self.video_window = VideoPlayerWindow(output_dir)
+        self.video_window.show()
 
     def load_images_to_display(self, image_dir_path: str):
         self.hint_label.setText(HINTS.get("images_after"))
@@ -413,7 +434,6 @@ class MainWindow(QMainWindow):
         return QFileDialog.getExistingDirectory(self, "Select Folder of images")
 
     def load_images_from_folder(self):
-        logging.debug("Action: load photo directory")
         self.stop_live_capture()
         folder_path = self.open_directory_dialog()
         if folder_path:
@@ -482,28 +502,24 @@ class MainWindow(QMainWindow):
             self.show_image(self.current_image_index)
 
     def load_video_file(self):
-        file_dialog = QFileDialog()
-        filepath, _ = file_dialog.getOpenFileName(self, "Open Video", "", "Video Files (*.mp4 *.avi *.mkv)")
-        self.reset_graphics_display()
-        self.pbar.setHidden(False)
-        self.video_thread.set_ad_file(self.ad_combobox.currentText())
-        self.video_thread.set_fd_model(self.fd_combobox.currentText())
-        self.video_thread.set_video_path(filepath)
-        self.video_thread.start()
+        """Loads video file and sets up the UI before processing"""
+        result = self.show_modal_dialog()
+        if result:
+            file_dialog = QFileDialog()
+            filepath, _ = file_dialog.getOpenFileName(self, "Open Video", "", "Video Files (*.mp4 *.avi *.mkv)")
+            if filepath:
+                self.pbar.setHidden(False)
+                self.video_thread.set_ad_file(self.ad_combobox.currentText())
+                self.video_thread.set_fd_model(self.fd_combobox.currentText())
+                self.video_thread.set_video_path(filepath)
+                self.video_thread.start()
+                self.hint_label.setText("Video is being processed. Please wait...")
 
     def set_fd_model(self, face_detector_name: str):
         self.live_thread.set_fd_model(face_detector_name)
 
     def set_ad_model(self, text):
         self.live_thread.set_ad_file(text)
-
-    def start_img_scenario(self):
-        """Loads images, sets up the UI before processing"""
-        pass
-
-    def start_img_processing(self):
-        """Starts loaded images processing"""
-        pass
 
     def start_live_capture(self):
         """Sets the proper UI and starts live video capture from webcam"""
@@ -562,7 +578,6 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot()
     def kill_live_video_thread(self):
-        logging.debug("Finishing live recording...")
         cv2.destroyAllWindows()
         if type(self.live_thread.camera) == cv2.VideoCapture:
             self.live_thread.camera.release()
@@ -572,7 +587,6 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot()
     def start_live_vide_thread(self):
-        logging.debug("Starting live video capture...")
         self.live_thread.set_fd_model(self.fd_combobox.currentText())
         self.live_thread.set_ad_file(self.ad_combobox.currentText())
         self.live_thread.start()

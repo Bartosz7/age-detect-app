@@ -4,11 +4,11 @@ import time
 
 import cv2
 import torch
-from PyQt6.QtCore import QObject, Qt, QThread, pyqtSignal, pyqtSlot
-from PyQt6.QtGui import QImage, QPainter, QColor
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtGui import QImage
 
 from config import Config
-from face_detection import DetectedFace, FaceDetectors, FaceDetectorFactory
+from face_detection import FaceDetectorFactory
 from age_detection import resnet50, predict_age_resnet50
 
 
@@ -41,10 +41,10 @@ class VideoProcessingThread(QThread):
         # get the total number of frames
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         # create a video writer to create a new video
-        fourcc = cv2.VideoWriter_fourcc(*'MJPG')  # alt. 'XVID' 'mp4v', 'H264', MJPG
-        self.output_video_filename = os.path.basename(self.video_path) # + ".avi"
+        fourcc = cv2.VideoWriter_fourcc(*'MJPG')  # alt. 'XVID', 'mp4v','H264'
+        # assume same file extension as input video
+        self.output_video_filename = os.path.basename(self.video_path)
         final_path = os.path.join(output_dir, self.output_video_filename)
-        # self.output_video_filename = os.path.join(output_dir, self.video_path)
         try:
             out = cv2.VideoWriter(final_path, fourcc, fps, (width, height))
 
@@ -77,7 +77,7 @@ class VideoProcessingThread(QThread):
             cap.release()
             out.release()
 
-        self.videoProcessed.emit(final_path)  # Emit the signal with the saved_images_dir_path
+        self.videoProcessed.emit(final_path)
 
     def set_video_path(self, video_path):
         self.video_path = video_path
@@ -154,7 +154,7 @@ class ImageProcessingThread(QThread):
             progress = int((i + 1) / total_images * 100)
             self.progress.emit(progress)
 
-        self.imagesProcessed.emit(output_dir)  # Emit the signal with the saved_images_dir_path
+        self.imagesProcessed.emit(output_dir)
 
     def set_fd_model(self, face_detector_name: str):
         face_detector = Config.FACE_DETECTION_MODELS.get(face_detector_name)
@@ -167,8 +167,8 @@ class ImageProcessingThread(QThread):
     def draw_age_annotation(self, image, face, text):
         cv2.rectangle(image, (face.x, face.y), (face.x + face.w, face.y + face.h), (0, 255, 0), 2)
 
-        font_scale = min(face.w, face.h) / 100  # Adjust the font size based on the size of the bounding box
-        thickness = max(int(font_scale * 2), 1)  # Calculate the appropriate thickness for the text
+        font_scale = min(face.w, face.h) / 100
+        thickness = max(int(font_scale * 2), 1)
 
         cv2.putText(image, text, (face.x, face.y - 10), cv2.FONT_HERSHEY_SIMPLEX, font_scale, (0, 255, 0), thickness)
 
