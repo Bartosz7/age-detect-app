@@ -13,7 +13,8 @@ def resnet50(weights_path: str | None = None, drop: float = 0.0):
         nn.Linear(128, 1),
     )
 
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if weights_path is not None:
-        model.load_state_dict(torch.load(weights_path))
-    
+        model.load_state_dict(torch.load(weights_path, map_location=device))
+
     return model
