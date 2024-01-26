@@ -4,7 +4,7 @@ An ML-based age detection app created for the Introduction to ML course at Warsa
 ### Resources
 - [Google Drive](https://drive.google.com/drive/folders/1--eqhLUZsyxi9vrgreIS-B9Zp0haDMjy)
 
-### Configuration and Usage
+## Configuration and Usage
 ##### Step 0: Prerequisites
 Make sure you have the following installed on your system:
 - `Python 3.11+`
