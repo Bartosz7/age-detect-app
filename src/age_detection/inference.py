@@ -1,14 +1,15 @@
 import os
 import sys
 import cv2
+from functools import reduce
 
 import torch
 from PIL import Image
 from torchvision import transforms
 
-from setup.model import resnet50
-from cut_out_face import get_face
-from setup.data_manager import MEAN_COLORS, STD_COLORS, STD_VALUE, MEAN_VALUE
+from .setup.model import resnet50
+from .cut_out_face import get_face
+from .setup.data_manager import MEAN_COLORS, STD_COLORS, STD_VALUE, MEAN_VALUE
 
 
 def inference(run_path: str, image_path: str, model_id: int | None = None):
@@ -34,6 +35,30 @@ def inference(run_path: str, image_path: str, model_id: int | None = None):
 
     age = output.item() * STD_VALUE + MEAN_VALUE
     print(f"Predicted age: {age:.2f} years")
+
+
+def predict_age_resnet50(model, device, image):
+
+    if reduce(lambda x, y: x * y, image.shape) == 0:
+        return 0
+
+    image = Image.fromarray(image)  # Convert the NumPy array to PIL Image
+
+    img_transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=MEAN_COLORS, std=STD_COLORS),
+    ])
+
+    # image = get_face(image_path)
+    # image = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    image = img_transform(image).unsqueeze(0).to(device)
+
+    with torch.no_grad():
+        output = model(image)
+
+    age = output.item() * STD_VALUE + MEAN_VALUE  # denormalization
+    return int(age)
 
 
 if __name__ == "__main__":
